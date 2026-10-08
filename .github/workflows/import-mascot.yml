@@ -1,0 +1,40 @@
+name: Import Math Lab mascot
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/import-mascot.yml'
+permissions:
+  contents: write
+jobs:
+  import-mascot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare image
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from urllib.request import urlopen
+          from io import BytesIO
+          from PIL import Image, ImageOps
+          from pathlib import Path
+          source = 'https://raw.githubusercontent.com/averj9292/pencilfish/main/assets/portrait.png'
+          with urlopen(source, timeout=30) as response:
+              raw = response.read()
+          image = Image.open(BytesIO(raw))
+          image = ImageOps.exif_transpose(image).convert('RGB')
+          image.thumbnail((360, 360))
+          Path('assets').mkdir(exist_ok=True)
+          image.save('assets/max-mascot.jpg', 'JPEG', quality=86, optimize=True)
+          print('Created standalone mascot image without source metadata')
+          PY
+      - name: Commit local image
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/max-mascot.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "Include Max mascot locally, without metadata"
+            git push
+          fi
