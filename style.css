@@ -14,3 +14,8 @@ body.theme-drawing{background:#eef4ff}body.theme-space{background:#e8eaff}body.t
 
 /* Max's cartoon co-creator mascot. */
 .co-creator-portrait{height:74px;width:74px;object-fit:cover;border-radius:50%;border:4px solid white;box-shadow:0 6px 16px #30366726;flex-shrink:0}.map-hero .co-creator-portrait{height:92px;width:92px;margin:0 auto 8px;display:block}.welcome-strip .co-creator-portrait{height:76px;width:76px}.world-hint{min-height:24px;font-weight:700;color:#57539f}.map-stop.locked{cursor:pointer}.map-hint{pointer-events:none}
+
+/* Use only the place-value columns needed for the current problem. */
+.columns.digits-1{grid-template-columns:repeat(2,minmax(0,1fr));max-width:210px}
+.columns.digits-2{grid-template-columns:repeat(3,minmax(0,1fr));max-width:310px}
+.columns.digits-3{grid-template-columns:repeat(4,minmax(0,1fr));max-width:400px}
