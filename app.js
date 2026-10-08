@@ -13,7 +13,7 @@ let wrongOnQuestion=false,usedHelp=false,tries=0;
 if(state.session){wrongOnQuestion=!!state.session.wrongOnQuestion;usedHelp=!!state.session.usedHelp;tries=state.session.tries||0;}
 function makeProblem(skill){const p=LE.problem(skill.id,Math.random,state.recentQuestions);state.recentQuestions=[...state.recentQuestions.slice(-19),p.signature];return {...p,n:(q.n||0)+1};}
 function activeSkill(){return LE.byId(currentSkillId)||LE.SKILLS[0];}
-function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${status.unassisted} of last 8 correct`:'Coming soon');box.append(item);}}
+function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${Math.min(status.attempts,10)}/10 questions · ${status.streak}/5 in a row`:'Coming soon');box.append(item);}}
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}}))}catch(e){}};
 const show=(id,yes)=>$(id).hidden=!yes;
 const worldDetails={drawing:['🎨','Sketch Meadow','Draw your own adventure!'],space:['🚀','Starry Space','Zoom through the stars!'],ocean:['🐬','Coral Cove','Dive into the ocean!'],jungle:['🌴','Jungle Trail','Explore the jungle!'],castle:['🏰','Cloud Castle','Explore the sky castle!'],mystery:['❔','???','What could be hiding here?']};
@@ -36,7 +36,7 @@ function render(){
  $('question').textContent=q.story||`${q.a} ${q.op} ${q.b} = ?`;
  const skill=activeSkill(),status=LE.masteryStatus(state.learning,skill.id);
  $('skillName').textContent=skill.name;$('skillDescription').textContent=skill.description;
- $('skillProgress').textContent=status.mastered?'✓ Mastered · Reviewing to keep it strong':`${status.unassisted} of last ${status.attempts} correct · Goal: 7 of 8, including the last 3`;
+ $('skillProgress').textContent=status.mastered?'✓ Mastered · Reviewing to keep it strong':`${Math.min(status.attempts,10)}/10 questions done · ${status.streak}/5 right in a row`;
  $('learningStatus').textContent=wrongOnQuestion&&!checked?'Try again! You can do it.':usedHelp?'Great job asking for help!':`Grade ${skill.grade} math · Take your time. Tap Teach me if you need help.`;
  $('progress').textContent=`${state.correct} solved of ${state.attempts} completed · ${state.learning.mastered.length} of ${LE.SKILLS.length} skills mastered. Stars unlock worlds; learning unlocks harder math.`;
  show('workArea',workspace);show('quickArea',!workspace);show('keypad',workspace);$('workBtn').classList.toggle('selected',workspace);$('quickBtn').classList.toggle('selected',!workspace);
