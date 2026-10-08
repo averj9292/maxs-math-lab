@@ -12,6 +12,19 @@ let currentSkillId=q.skillId&&LE.byId(q.skillId)?q.skillId:LE.choose(state.learn
 let wrongOnQuestion=false,usedHelp=false,tries=0;
 if(state.session){wrongOnQuestion=!!state.session.wrongOnQuestion;usedHelp=!!state.session.usedHelp;tries=state.session.tries||0;}
 function makeProblem(skill){const p=LE.problem(skill.id,Math.random,state.recentQuestions);state.recentQuestions=[...state.recentQuestions.slice(-19),p.signature];return {...p,n:(q.n||0)+1};}
+/* Only show the place-value columns needed by this question. */
+function answerColumns(){
+ const largest=Math.max(q.a||0,q.b||0,q.answer||0);
+ return largest>=100?[0,1,2]:largest>=10?[1,2]:[2];
+}
+function startAtLeft(){selected=answerColumns()[0];}
+function normalizeAnswer(){
+ if(!Array.isArray(answer)||answer.length!==3)answer=['','',''];
+ const visible=answerColumns();
+ for(let i=0;i<3;i++)if(!visible.includes(i))answer[i]='';
+ if(!visible.includes(selected)||answer.every(v=>!v))startAtLeft();
+}
+normalizeAnswer();
 function activeSkill(){return LE.byId(currentSkillId)||LE.SKILLS[0];}
 function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${Math.min(status.attempts,10)}/10 questions · ${status.streak}/5 in a row`:'Coming soon');box.append(item);}}
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}}))}catch(e){}};
@@ -27,7 +40,7 @@ function worldsView(){show('game',false);show('setup',false);show('worlds',true)
 function gameView(){show('setup',false);show('worlds',false);show('map',false);show('game',true);theme();$('playmode').value=state.playmode;render()}
 function generate(){
  const choice=LE.choose(state.learning);q=makeProblem(choice.skill);currentSkillId=choice.skill.id;
- answer=['','',''];selected=2;checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;strokes=[];
+ answer=['','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;strokes=[];
  $('feedback').textContent='';show('celebrate',false);show('teaching',false);show('regroup',false);show('retry',false);show('drawing',false);save();render();
 }
 const expected=()=>q.answer!==undefined?q.answer:(q.op==='＋'?q.a+q.b:q.a-q.b);
@@ -43,13 +56,58 @@ function render(){
  $('quickInput').value=answer.join('').replace(/^0+(?=\d)/,'');$('quickInput').disabled=checked;
  show('check',!checked);show('next',checked);renderColumns();renderKeypad();learningReport();
 }
-function renderColumns(){const grid=$('columns');grid.replaceChildren();
- if(q.story){const hint=document.createElement('div');hint.className='story-work';hint.textContent='Think it through, then enter your final answer below.';grid.append(hint);}
- else {['','H','T','O'].forEach(x=>{const el=document.createElement('div');el.className='cell heading';el.textContent=x;grid.append(el)});[[q.a,''],[q.b,q.op]].forEach(([num,sign])=>{const op=document.createElement('div');op.className='cell';op.textContent=sign;grid.append(op);[2,1,0].forEach(power=>{const el=document.createElement('div');el.className='cell';el.textContent=power===0||num>=10**power?Math.floor(num/10**power)%10:'';grid.append(el)})});const line=document.createElement('div');line.className='line';grid.append(line);const blank=document.createElement('div');grid.append(blank);}
- if(q.story){const label=document.createElement('div');label.className='story-answer-label';label.textContent='Your answer:';grid.append(label);}
- answer.forEach((v,i)=>{const b=button(v||'·',()=>{selected=i;save();renderColumns()},'cell answerbox'+(selected===i?' active':''));b.disabled=checked;b.setAttribute('aria-label',['Hundreds','Tens','Ones'][i]+' answer '+(v||'empty'));grid.append(b)});
+function renderColumns(){
+ const grid=$('columns');
+ grid.replaceChildren();
+ const visible=answerColumns(),names=['Hundreds','Tens','Ones'];
+ grid.classList.remove('digits-1','digits-2','digits-3');
+ grid.classList.add('digits-'+visible.length);
+ if(q.story){
+  const hint=document.createElement('div');hint.className='story-work';
+  hint.textContent='Think it through, then enter your answer below.';
+  grid.append(hint);
+ }else{
+  ['',...visible.map(i=>['H','T','O'][i])].forEach(x=>{
+   const el=document.createElement('div');el.className='cell heading';el.textContent=x;grid.append(el);
+  });
+  [[q.a,''],[q.b,q.op]].forEach(([num,sign])=>{
+   const op=document.createElement('div');op.className='cell';op.textContent=sign;grid.append(op);
+   visible.forEach(i=>{
+    const power=2-i,el=document.createElement('div');
+    el.className='cell';
+    el.textContent=power===0||num>=10**power?Math.floor(num/10**power)%10:'';
+    grid.append(el);
+   });
+  });
+  const line=document.createElement('div');line.className='line';grid.append(line);
+ }
+ if(q.story){
+  const label=document.createElement('div');label.className='story-answer-label';label.textContent='Your answer:';grid.append(label);
+ }
+ const blank=document.createElement('div');blank.className='cell';grid.append(blank);
+ visible.forEach(i=>{
+  const v=answer[i];
+  const b=button(v||'·',()=>{selected=i;save();renderColumns()},'cell answerbox'+(selected===i?' active':''));
+  b.disabled=checked;
+  b.setAttribute('aria-label',names[i]+' answer '+(v||'empty'));
+  grid.append(b);
+ });
 }
-function renderKeypad(){const box=$('keypad');box.replaceChildren();for(let n=0;n<=9;n++)box.append(button(String(n),()=>{if(checked)return;answer[selected]=String(n);if(selected>0)selected--;save();render()},'secondary'));box.append(button('⌫',()=>{if(checked)return;answer[selected]='';save();render()},'secondary'))}
+function renderKeypad(){
+ const box=$('keypad');box.replaceChildren();
+ for(let n=0;n<=9;n++)box.append(button(String(n),()=>{
+  if(checked)return;
+  answer[selected]=String(n);
+  if(selected<2)selected++;
+  save();render();
+ },'secondary'));
+ box.append(button('⌫',()=>{
+  if(checked)return;
+  if(!answer[selected]&&selected>answerColumns()[0])selected--;
+  answer[selected]='';
+  save();render();
+ },'secondary'));
+}
 function value(){return answer.every(x=>!x)?null:Number(answer.map(x=>x||'0').join(''))}
 function diagnose(given,p){const correct=expected(),diff=given-correct;
  if(p.op==='−'&&given===p.a+p.b)return 'Check the sign: this problem asks you to subtract, not add. Try again.';
@@ -82,7 +140,7 @@ function canvas(){const c=$('pad');const r=c.getBoundingClientRect();if(!r.width
 function redraw(){const c=$('pad'),ctx=c.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#233e88';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';for(const points of strokes){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(points.length===1){ctx.lineTo(points[0][0]+.1,points[0][1]+.1)}ctx.stroke()}}
 function point(e){const r=$('pad').getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
 $('pad').addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;$('pad').setPointerCapture(e.pointerId);strokes.push([point(e)]);redraw()});$('pad').addEventListener('pointermove',e=>{if(!drawing)return;strokes[strokes.length-1].push(point(e));redraw()});['pointerup','pointercancel'].forEach(event=>$('pad').addEventListener(event,()=>drawing=false));
-$('begin').onclick=()=>{state={...defaults(),initials:$('initials').value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2),avatar:setupAvatar,world:setupWorld,unlocked:[setupWorld],mystery:setupMystery};state.learning=LE.normalize(null);q=makeProblem(LE.choose(state.learning).skill);currentSkillId=q.skillId;save();mapView()};$('worldBtn').onclick=()=>{stopVoice();worldsView()};$('return').onclick=mapView;$('backToMap').onclick=()=>{stopVoice();save();mapView()};$('playFromMap').onclick=gameView;$('mapCollection').onclick=worldsView;$('workBtn').onclick=()=>{workspace=true;save();render()};$('quickBtn').onclick=()=>{workspace=false;save();render()};$('quickInput').addEventListener('input',e=>{const str=e.target.value.replace(/\D/g,'').slice(0,3);answer=str.padStart(3,' ').split('').map(x=>x===' '?'':x);save();renderColumns()});$('check').onclick=check;$('retry').onclick=()=>{show('retry',false);$('feedback').textContent='Give it another try. You can do this!';render()};$('next').onclick=()=>{stopVoice();generate()};$('teachBtn').onclick=()=>{usedHelp=true;save();teach=teachingSteps();teachIndex=0;show('teaching',true);teachRender()};$('stepBtn').onclick=()=>{if(teachIndex<teach.length-1){teachIndex++;teachRender();stopVoice()}};$('speakBtn').onclick=speak;$('drawBtn').onclick=()=>{const open=$('drawing').hidden;show('drawing',open);if(open)requestAnimationFrame(canvas)};$('undo').onclick=()=>{strokes.pop();redraw()};$('clear').onclick=()=>{strokes=[];redraw()};
+$('begin').onclick=()=>{state={...defaults(),initials:$('initials').value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2),avatar:setupAvatar,world:setupWorld,unlocked:[setupWorld],mystery:setupMystery};state.learning=LE.normalize(null);q=makeProblem(LE.choose(state.learning).skill);currentSkillId=q.skillId;answer=['','',''];startAtLeft();save();mapView()};$('worldBtn').onclick=()=>{stopVoice();worldsView()};$('return').onclick=mapView;$('backToMap').onclick=()=>{stopVoice();save();mapView()};$('playFromMap').onclick=gameView;$('mapCollection').onclick=worldsView;$('workBtn').onclick=()=>{workspace=true;save();render()};$('quickBtn').onclick=()=>{workspace=false;save();render()};$('quickInput').addEventListener('input',e=>{const str=e.target.value.replace(/\D/g,'').slice(0,3);answer=str.padStart(3,' ').split('').map(x=>x===' '?'':x);save();renderColumns()});$('check').onclick=check;$('retry').onclick=()=>{show('retry',false);$('feedback').textContent='Give it another try. You can do this!';render()};$('next').onclick=()=>{stopVoice();generate()};$('teachBtn').onclick=()=>{usedHelp=true;save();teach=teachingSteps();teachIndex=0;show('teaching',true);teachRender()};$('stepBtn').onclick=()=>{if(teachIndex<teach.length-1){teachIndex++;teachRender();stopVoice()}};$('speakBtn').onclick=speak;$('drawBtn').onclick=()=>{const open=$('drawing').hidden;show('drawing',open);if(open)requestAnimationFrame(canvas)};$('undo').onclick=()=>{strokes.pop();redraw()};$('clear').onclick=()=>{strokes=[];redraw()};
 ['playmode'].forEach(id=>$(id).addEventListener('change',()=>{state[id]=$ (id).value;save();if(id==='playmode'){clearInterval(timerId);timerId=null;if(state.playmode==='minute'){roundEnd=Date.now()+60000;timerId=setInterval(()=>{const left=Math.max(0,Math.ceil((roundEnd-Date.now())/1000));$('timer').textContent=`⏱️ ${left}s`;if(left===0){clearInterval(timerId);timerId=null;$('check').disabled=true;$('feedback').textContent='⏰ Time is up! Great effort. Change to Practice Lab to continue.'}},250)}else{$('timer').textContent='';$('check').disabled=false}}generate()}));
 $('reset').onclick=()=>{if(confirm('Clear stars, unlocked worlds, avatar and all progress on this device? This cannot be undone.')){localStorage.removeItem(STORE);location.reload()}};
-if(localStorage.getItem(STORE)){if(!q.skillId||q.answer===undefined){q=makeProblem(LE.choose(state.learning).skill);answer=['','',''];checked=false;}currentSkillId=q.skillId||LE.choose(state.learning).skill.id;save();mapView()}else setup();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if(localStorage.getItem(STORE)){if(!q.skillId||q.answer===undefined){q=makeProblem(LE.choose(state.learning).skill);answer=['','',''];startAtLeft();checked=false;}currentSkillId=q.skillId||LE.choose(state.learning).skill.id;save();mapView()}else setup();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
