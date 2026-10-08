@@ -43,15 +43,26 @@ return {a,b,op,answer,skillId,story,steps,signature:`${skillId}:${a}:${op}:${b}:
 function fresh(){return {version:2,records:{},mastered:[],recent:[],completed:0,reviewClock:0,history:[]};}
 function normalize(v){const x=fresh();if(!v||typeof v!=='object')return x;x.records=v.records&&typeof v.records==='object'?v.records:{};x.mastered=Array.isArray(v.mastered)?v.mastered.filter(id=>!!byId(id)):[];x.recent=Array.isArray(v.recent)?v.recent.slice(-30):[];x.completed=Number.isFinite(v.completed)?Math.max(0,v.completed):0;x.history=Array.isArray(v.history)?v.history.slice(-120):[];return x;}
 function available(data){return SKILLS.filter(s=>s.prereq.every(id=>data.mastered.includes(id)));}
-function masteryStatus(data,id){const r=(data.records[id]||[]).slice(-8);const unassisted=r.filter(x=>x.correct&&!x.help&&!x.retried).length;const last5=r.slice(-5);return {attempts:r.length,unassisted,correct:last5.filter(x=>x.correct).length,of:last5.length,mastered:data.mastered.includes(id)};}
+function masteryStatus(data,id){
+const r=data.records[id]||[];
+let streak=0;
+for(let i=r.length-1;i>=0;i--){
+ const x=r[i];
+ if(!x.correct||x.help||x.retried)break;
+ streak++;
+}
+return {attempts:r.length,streak:Math.min(streak,5),mastered:data.mastered.includes(id)};
+}
 function choose(data){const open=available(data);const unmastered=open.filter(s=>!data.mastered.includes(s.id));const due=data.mastered.filter(id=>{const h=data.history.filter(x=>x.id===id).at(-1);return h&&data.completed-h.at>=Math.min(20,5+Math.floor((h.reviews||0)*3));});
 // Every fifth completed question, revisit a mastered skill due for review.
 if(due.length&&data.completed>0&&data.completed%5===0)return {skill:byId(due[0]),review:true};
 if(unmastered.length){const s=unmastered.sort((a,b)=>SKILLS.indexOf(a)-SKILLS.indexOf(b))[0];return {skill:s,review:false};}
 return {skill:SKILLS[data.completed%SKILLS.length],review:true};}
-function record(data,id,{correct,help=false,retried=false}){const row={correct:!!correct,help:!!help,retried:!!retried};const arr=data.records[id]||(data.records[id]=[]);arr.push(row);if(arr.length>40)arr.shift();data.completed++;data.history.push({id,at:data.completed,correct:row.correct});if(data.history.length>120)data.history.shift();const recent=arr.slice(-8);const solid=recent.filter(x=>x.correct&&!x.help&&!x.retried).length;
-// Requires eight recent first-try independent attempts, >=7 correct; and last 3 independent correct.
-const mastered=recent.length===8&&solid>=7&&recent.slice(-3).every(x=>x.correct&&!x.help&&!x.retried);
+function record(data,id,{correct,help=false,retried=false}){const row={correct:!!correct,help:!!help,retried:!!retried};const arr=data.records[id]||(data.records[id]=[]);arr.push(row);if(arr.length>40)arr.shift();data.completed++;data.history.push({id,at:data.completed,correct:row.correct});if(data.history.length>120)data.history.shift();// Complete at least 10 questions for this skill, and finish with 5 correct
+// on the first attempt in a row. Hints and retries are welcome, but restart
+// this five-question streak. Stars and other progress are never taken away.
+const status=masteryStatus(data,id);
+const mastered=status.attempts>=10&&status.streak>=5;
 let newly=false;if(mastered&&!data.mastered.includes(id)){data.mastered.push(id);newly=true;}
 // Reopen a skill if repeated review errors indicate fragile understanding.
 if(data.mastered.includes(id)&&arr.slice(-4).length===4&&arr.slice(-4).filter(x=>!x.correct).length>=2){data.mastered=data.mastered.filter(x=>x!==id);}
