@@ -13,7 +13,7 @@ let wrongOnQuestion=false,usedHelp=false,tries=0;
 if(state.session){wrongOnQuestion=!!state.session.wrongOnQuestion;usedHelp=!!state.session.usedHelp;tries=state.session.tries||0;}
 function makeProblem(skill){const p=LE.problem(skill.id,Math.random,state.recentQuestions);state.recentQuestions=[...state.recentQuestions.slice(-19),p.signature];return {...p,n:(q.n||0)+1};}
 function activeSkill(){return LE.byId(currentSkillId)||LE.SKILLS[0];}
-function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${status.unassisted} independent correct in last 8 attempts`:'Coming soon');box.append(item);}}
+function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${status.unassisted} of last 8 correct`:'Coming soon');box.append(item);}}
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}}))}catch(e){}};
 const show=(id,yes)=>$(id).hidden=!yes;
 const worldDetails={drawing:['🎨','Sketch Meadow','Draw your own adventure!'],space:['🚀','Starry Space','Zoom through the stars!'],ocean:['🐬','Coral Cove','Dive into the ocean!'],jungle:['🌴','Jungle Trail','Explore the jungle!'],castle:['🏰','Cloud Castle','Explore the sky castle!'],mystery:['❔','???','What could be hiding here?']};
@@ -36,7 +36,7 @@ function render(){
  $('question').textContent=q.story||`${q.a} ${q.op} ${q.b} = ?`;
  const skill=activeSkill(),status=LE.masteryStatus(state.learning,skill.id);
  $('skillName').textContent=skill.name;$('skillDescription').textContent=skill.description;
- $('skillProgress').textContent=status.mastered?'✓ Mastered · Reviewing to keep it strong':`${status.unassisted} independent correct in last ${status.attempts} attempts · Goal: 7 of 8, including last 3`;
+ $('skillProgress').textContent=status.mastered?'✓ Mastered · Reviewing to keep it strong':`${status.unassisted} of last ${status.attempts} correct · Goal: 7 of 8, including the last 3`;
  $('learningStatus').textContent=wrongOnQuestion&&!checked?'Try again! You can do it.':usedHelp?'Great job asking for help!':`Grade ${skill.grade} math · Take your time. Tap Teach me if you need help.`;
  $('progress').textContent=`${state.correct} solved of ${state.attempts} completed · ${state.learning.mastered.length} of ${LE.SKILLS.length} skills mastered. Stars unlock worlds; learning unlocks harder math.`;
  show('workArea',workspace);show('quickArea',!workspace);show('keypad',workspace);$('workBtn').classList.toggle('selected',workspace);$('quickBtn').classList.toggle('selected',!workspace);
@@ -70,7 +70,7 @@ function check(){
  checked=true;state.attempts++;state.correct++;state.stars++;state.streak++;state.best=Math.max(state.best,state.streak);
  const result=LE.record(state.learning,currentSkillId,{correct:true,help:usedHelp,retried:wrongOnQuestion});
  const before=state.unlocked.length;unlock();
- $('feedback').textContent=wrongOnQuestion?'You figured it out! Fixing a mistake is great learning.':usedHelp?'Nice work using a strategy!':'⭐ Great independent thinking!';
+ $('feedback').textContent=wrongOnQuestion?'You figured it out! Fixing a mistake is great learning.':usedHelp?'Nice work using a strategy!':'⭐ Great thinking!';
  if(result.newlyMastered||state.unlocked.length>before){$('celebrate').textContent=result.newlyMastered?'🧠 Skill mastered! A new challenge is ready.':'🎊 New world unlocked!';show('celebrate',true)}
  show('retry',false);save();render();
 }
