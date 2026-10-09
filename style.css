@@ -137,3 +137,30 @@ body.world-entering{overflow:hidden}
  .journey-peek{font-size:.62rem}
 }
 @media(prefers-reduced-motion:reduce){#game,#game .world-stage:after,#game .world-stage .stage-emoji{animation:none!important}}
+
+/* Twelve collectible quest chapters in each world. */
+.adventure-progress{position:relative;border-radius:23px;padding:15px 17px;margin:0 0 19px;background:linear-gradient(125deg,#fffffff2,#fffcf4eb);border:3px solid #ffffffde;box-shadow:0 9px 0 #27384938,0 12px 24px #1c30443b;color:#293951}
+.mission-head{display:flex;align-items:center;justify-content:space-between;gap:13px}
+.mission-head>div:first-child{min-width:0}
+.mission-eyebrow{display:block;font-size:.66rem;letter-spacing:.1em;font-weight:950;color:#7659ad}
+.mission-head h3{font-size:clamp(1.03rem,2.7vw,1.35rem);margin:4px 0;color:#253b6b;line-height:1.24}
+.mission-head p{margin:0;color:#586c86;font-size:.79rem;line-height:1.45;font-weight:650}
+.mission-reward{font-size:2.75rem;flex-shrink:0;filter:drop-shadow(0 5px 5px #1e3b6242);animation:questFloat 3s ease-in-out infinite}
+.mission-progress-rail{height:16px;overflow:hidden;border-radius:40px;background:#dee7f6;box-shadow:inset 0 3px 4px #5c739728;margin-top:14px;border:2px solid #fff}
+.mission-progress-fill{height:100%;width:0;border-radius:40px;background:linear-gradient(90deg,#64cfd6,#7a8cf2,#bf7cf2);transition:width .35s ease}
+.mission-count{font-weight:850;font-size:.74rem;color:#4c6482;margin-top:5px;text-align:right}
+.mission-trail{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;margin:13px 0 0}
+.mission-token{display:grid;place-items:center;aspect-ratio:1;min-height:23px;border-radius:9px;background:#e7e9f2;border:1px solid #d6dceb;color:#7685a0;font-size:clamp(.7rem,1.9vw,1.22rem);filter:grayscale(.8);opacity:.8}
+.mission-token.complete{background:#e4fbeb;border-color:#8dd9b7;filter:none;opacity:1;box-shadow:0 2px 0 #b7e4c6}
+.mission-token.current{background:#fff0c5;border:2px solid #e9ba66;filter:none;opacity:1;box-shadow:0 0 0 2px #fff5dc,0 0 13px #efb95675;animation:questPulse 2.8s ease-in-out infinite}
+.mission-celebration{text-align:center;padding:17px 12px;margin-top:16px;border-radius:20px;background:linear-gradient(140deg,#fff4c7,#e6f9ff);border:3px solid #f7d581;box-shadow:0 7px 0 #e5cb8a4a}
+.mission-celebration[hidden]{display:none}
+.mission-celebrate-icon{font-size:3.1rem;margin:0 0 4px;filter:drop-shadow(0 6px 5px #27395835)}
+.mission-celebration strong{font-size:1.22rem;color:#3e418a;display:block}
+.mission-celebration p{margin:5px 0;color:#4b6180}
+.mission-celebration.mission-pop{animation:missionPop .65s cubic-bezier(.25,1.35,.45,1) both}
+@keyframes missionPop{0%{transform:scale(.75);opacity:0}65%{transform:scale(1.045)}100%{transform:scale(1);opacity:1}}
+@keyframes questFloat{50%{transform:translateY(-7px) rotate(-6deg)}}
+@keyframes questPulse{50%{transform:scale(1.1);box-shadow:0 0 0 4px #fff5dc,0 0 15px #efb956a2}}
+@media(max-width:520px){.adventure-progress{padding:13px 12px;margin-bottom:18px}.mission-trail{gap:3px}.mission-token{min-height:20px;border-radius:6px}.mission-reward{font-size:2.1rem}.mission-head p{font-size:.74rem}}
+@media(prefers-reduced-motion:reduce){.mission-reward,.mission-token.current,.mission-celebration.mission-pop{animation:none!important}.mission-progress-fill{transition:none}}
