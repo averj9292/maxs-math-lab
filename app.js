@@ -163,7 +163,52 @@ function pictorial(id,p,step=0){
  box.hidden=true;
 }
 function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){if(state.mathTopic!=='advanced'&&!BASIC_IDS.has(skill.id))continue;const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);const need=skill.prereq.filter(id=>!state.learning.mastered.includes(id)).map(id=>LE.byId(id).name);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${Math.min(status.attempts,10)}/10 questions · ${status.streak}/5 in a row`:'Unlock by mastering: '+need.join(' and '));box.append(item);}}
-const save=()=>{try{localStorage.setItem(STORE,JSON.stringify({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}}))}catch(e){}};
+const backupPayload=()=>({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}});
+let storageProblem=false;
+function storageWarning(message){storageProblem=true;const node=$('storageStatus');if(node){node.textContent=message;node.hidden=false}}
+const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(backupPayload()));if(storageProblem){storageProblem=false;const node=$('storageStatus');if(node){node.hidden=true;node.textContent=''}}return true}catch(e){storageWarning('⚠️ Progress is NOT saving on this device. Please check Safari storage settings or free up space. Keep this page open and download a backup in Parent settings.');return false}};
+function validBackup(data){
+ if(!data||typeof data!=='object'||Array.isArray(data))throw Error('This file does not contain valid game progress.');
+ if(data.format!=='maxmath-progress-backup'||data.version!==1)throw Error('This is not a supported Max’s Math Lab backup.');
+ const p=data.progress;
+ if(!p||typeof p!=='object'||Array.isArray(p)||!Number.isFinite(p.stars)||p.stars<0||p.stars>10000000||!Number.isInteger(p.stars))throw Error('This backup has invalid progress data.');
+ if(!Array.isArray(p.unlocked)||p.unlocked.some(w=>!worlds.some(item=>item[0]===w))||typeof p.world!=='string'||!worlds.some(item=>item[0]===p.world))throw Error('This backup has invalid world data.');
+ if(p.learning!=null&&(typeof p.learning!=='object'||Array.isArray(p.learning)))throw Error('This backup has invalid learning history.');
+ if(p.worldProgress!=null&&(typeof p.worldProgress!=='object'||Array.isArray(p.worldProgress)))throw Error('This backup has invalid mission progress.');
+ if(p.session!=null&&(typeof p.session!=='object'||Array.isArray(p.session)))throw Error('This backup has invalid session.');
+ if(p.maxLab!=null&&(typeof p.maxLab!=='object'||Array.isArray(p.maxLab)))throw Error('This backup has invalid lab progress.');
+ return p;
+}
+function setBackupStatus(message){const node=$('backupStatus');if(node)node.textContent=message}
+$('backupExport').onclick=()=>{
+ try{
+  const data={format:'maxmath-progress-backup',version:1,exportedAt:new Date().toISOString(),progress:backupPayload()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='maxs-math-lab-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+  setBackupStatus('Backup prepared. Save the downloaded JSON file somewhere safe.');
+ }catch(e){setBackupStatus('Could not prepare the backup. Please try again.')}
+};
+$('backupImport').onchange=async e=>{
+ const input=e.target;const file=input.files&&input.files[0];if(!file)return;
+ try{
+  if(file.size>2*1024*1024)throw Error('This file is too large for a game backup.');
+  const parsed=JSON.parse(await file.text());const progress=validBackup(parsed);
+  if(!confirm('Restore this backup? It will REPLACE the current stars, worlds and learning history on this device. Cancel if you want to download your current progress first.')){setBackupStatus('Restore cancelled. Your current progress is unchanged.');return}
+  const json=JSON.stringify(progress);
+  localStorage.setItem(STORE,json);
+  setBackupStatus('Backup restored! Reloading the game…');location.reload();
+ }catch(err){setBackupStatus('Restore failed: '+(err instanceof Error?err.message:'Could not read this file')+'. Your current progress was not intentionally changed.')}
+ finally{input.value=''}
+};
+$('reset').onclick=()=>{$('resetConfirm').hidden=false;$('resetPhrase').value='';$('resetFinal').disabled=true;$('resetPhrase').focus()};
+$('resetPhrase').oninput=()=>{$('resetFinal').disabled=$('resetPhrase').value.trim()!=='DELETE'};
+$('resetCancel').onclick=()=>{$('resetConfirm').hidden=true;$('resetPhrase').value=''};
+$('resetFinal').onclick=()=>{
+ if($('resetPhrase').value.trim()!=='DELETE')return;
+ if(!confirm('Final confirmation: permanently erase all Max’s Math Lab progress saved on THIS device?'))return;
+ try{localStorage.removeItem(STORE);if(localStorage.getItem(STORE)!==null)throw Error('The browser did not delete the save.');location.reload()}
+ catch(e){storageWarning('Could not clear saved progress. Check browser storage settings.')}
+};
 const show=(id,yes)=>$(id).hidden=!yes;
 const worldDetails={drawing:['🎨','Sketch Meadow','Draw your own adventure!'],space:['🚀','Starry Space','Zoom through the stars!'],ocean:['🐬','Coral Cove','Dive into the ocean!'],jungle:['🌴','Jungle Trail','Explore the jungle!'],castle:['🏰','Cloud Castle','Explore the sky castle!'],mystery:['❔','???','What could be hiding here?']};
 function mapView(){window.MaxMode?.hide();show('setup',false);show('game',false);show('worlds',false);show('map',true);theme();$('mapStars').textContent=state.stars;$('mapLevel').textContent=1+Math.floor(state.stars/10);$('mapAvatar').textContent=avatars[state.avatar]||'🦊';const box=$('adventureMap');box.replaceChildren();worlds.forEach(([id,emoji,name],i)=>{const open=state.unlocked.includes(id);const secret=id==='mystery'&&!open;const enteringSecretCode=!!window.MaxMode?.armed;const details=worldDetails[id];const node=document.createElement('button');node.type='button';node.className='map-stop stop-'+i+(open?' open':' locked')+(state.world===id?' current':'');node.disabled=false;node.setAttribute('aria-label',enteringSecretCode?'Secret code world '+name:open?details[1]+(state.world===id?', current world':''):secret?'Secret world, locked':name+', locked');const art=document.createElement('span');art.className='stop-art';art.textContent=enteringSecretCode?emoji:secret?'?':open?emoji:'🔒';const heading=document.createElement('strong');heading.textContent=enteringSecretCode?name:secret?'???':open?details[1]:'Locked';const sub=document.createElement('small');sub.textContent=enteringSecretCode?'Tap to enter code':secret?'A mystery awaits':open?(missionState(id).completed+'/12 missions'):'Finish more missions';node.append(art,heading,sub);node.onclick=()=>{if(window.MaxMode?.worldTap(id))return;if(!open){const hint=box.querySelector('.map-hint');if(hint)hint.textContent=secret?'🔎 Shhh! Keep playing to find the secret world!':'🔒 Not unlocked yet! Complete more missions to visit.';return;}enterWorld(id)};box.append(node)});const note=document.createElement('p');note.className='map-hint';note.textContent=window.MaxMode?.armed?'🔐 Secret code active: tap the world icons in your pattern!':'✨ Tap a world to play!';box.append(note);window.MaxMode?.refreshMap()}
@@ -576,5 +621,5 @@ $('cleverPrev').onclick=()=>{cleverIndex=Math.max(0,cleverIndex-1);cleverRender(
 $('cleverNext').onclick=()=>{const st=LE.cleverStrategy(q);if(st)cleverIndex=Math.min(st.steps.length-1,cleverIndex+1);cleverRender()};
 $('speakBtn').onclick=speak;$('tradeBtn').onclick=()=>{tutorTraded=!tutorTraded;pictorial('teachVisual',q,teachIndex);$('tradeBtn').textContent=tutorTraded?'↩️ Show before trading':'🔁 Trade 1 ten for 10 ones'};$('drawBtn').onclick=()=>{const open=$('drawing').hidden;show('drawing',open);if(open)requestAnimationFrame(canvas)};$('undo').onclick=()=>{strokes.pop();redraw()};$('clear').onclick=()=>{strokes=[];redraw()};
 ['playmode'].forEach(id=>$(id).addEventListener('change',()=>{state[id]=$ (id).value;save();if(id==='playmode'){clearInterval(timerId);timerId=null;if(state.playmode==='minute'){roundEnd=Date.now()+60000;timerId=setInterval(()=>{const left=Math.max(0,Math.ceil((roundEnd-Date.now())/1000));$('timer').textContent=`⏱️ ${left}s`;if(left===0){clearInterval(timerId);timerId=null;$('check').disabled=true;$('feedback').textContent='⏰ Time is up! Great effort. Change to Practice Lab to continue.'}},250)}else{$('timer').textContent='';$('check').disabled=false}}generate()}));
-$('reset').onclick=()=>{if(confirm('Clear stars, unlocked worlds, avatar and all progress on this device? This cannot be undone.')){localStorage.removeItem(STORE);location.reload()}};
+
 if(localStorage.getItem(STORE)){if(!q.skillId||q.answer===undefined){q=makeProblem(pickQuestionSkill());answer=['','','',''];startAtLeft();checked=false;}currentSkillId=q.skillId||LE.choose(state.learning).skill.id;save();mapView()}else setup();window.MaxMode?.init();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
