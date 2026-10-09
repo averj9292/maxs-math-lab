@@ -21,7 +21,7 @@ function missionState(id){
  const mainDone=count>=set.items.length*MISSION_SIZE;
  const number=Math.floor(count/MISSION_SIZE);
  const chapter=mainDone?number-set.items.length+1:number;
- const item=mainDone?['🌟','Bonus expedition '+(chapter+1)]:set.items[Math.min(number,set.items.length-1)];
+ const item=mainDone?['🌟','Bonus expedition '+chapter]:set.items[Math.min(number,set.items.length-1)];
  return {count,set,mainDone,number,item,within:count%MISSION_SIZE,completed:Math.min(number,set.items.length)};
 }
 function updateMissionDisplay(){
