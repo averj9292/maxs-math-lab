@@ -29,6 +29,8 @@ function updateMissionDisplay(){
  $('missionTitle').textContent=m.item[1];
  $('missionGoal').textContent=m.mainDone?'The adventure continues! Complete bonus challenges to earn more rewards.':m.set.verb+' · Mission '+(m.number+1)+' of '+m.set.items.length;
  $('missionReward').textContent=m.item[0];
+ $('craftOutline').textContent=m.item[0];$('craftColour').textContent=m.item[0];$('craftColour').style.clipPath='inset(0 '+(100-m.within*10)+'% 0 0)';
+ $('craftCaption').textContent=m.within===0?'Solve problems to start building!':m.within+' of 10 pieces collected!';
  $('missionFill').style.width=(m.within*10)+'%';
  $('missionBar').setAttribute('aria-valuenow',m.within);
  $('missionCount').textContent=m.within+' of 10 challenges · '+m.completed+' of 12 missions complete';
