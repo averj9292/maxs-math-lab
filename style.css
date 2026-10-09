@@ -216,3 +216,23 @@ body.world-entering{overflow:hidden}
 .craft-colour{filter:drop-shadow(0 3px 4px #32395450);clip-path:inset(0 100% 0 0)}
 .craft-caption{font-size:.76rem;line-height:1.3;color:#57688e;font-weight:800;flex:1}
 @media(prefers-reduced-motion:reduce){.craft-colour{transition:none}}
+
+/* Optional mental-math ideas: visual number relationships, not timed drills. */
+.clever-tutor{margin:15px 0 10px}
+.clever-toggle{width:100%;min-height:50px;border:2px solid #a7d8e2;background:#e9f9fc;color:#2d587b;font-weight:900}
+.clever-toggle[hidden]{display:none}
+.clever-panel{border-radius:21px;background:linear-gradient(140deg,#edfcff,#f7efff);border:3px solid #b6d4ee;padding:17px 14px;margin-top:10px;box-shadow:0 5px 0 #d2e5f2}
+.clever-panel[hidden]{display:none}
+.clever-head{display:flex;flex-direction:column;align-items:center;gap:3px;color:#334c87;text-align:center}
+.clever-head strong{font-size:1.25rem}
+.clever-head small{font-size:.8rem;color:#667c9c;font-weight:700}
+.clever-models{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;margin:18px auto 15px}
+.clever-number-card{border:2px solid #bad0ef;background:white;border-radius:15px;padding:10px;min-width:75px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 4px 0 #c4d8e9}
+.clever-number-card small{font-size:.65rem;color:#596c8c;font-weight:850;text-align:center}
+.clever-number-card strong{font-size:1.8rem;color:#3851a1;line-height:1.1}
+.clever-panel>p#cleverExplanation{font-weight:850;font-size:1.03rem;text-align:center;color:#344d74;line-height:1.5;margin:10px 0 15px}
+.clever-controls{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.clever-controls button{min-height:43px;flex:1;white-space:normal}
+.clever-controls span{font-size:.75rem;color:#536d8c;font-weight:850}
+.clever-panel .clever-reassurance{font-size:.77rem;text-align:center;color:#647e92;font-weight:750;margin:14px 0 2px}
+@media(max-width:520px){.clever-panel{padding:12px 8px}.clever-number-card{min-width:58px;padding:8px 5px}.clever-number-card strong{font-size:1.4rem}.clever-controls span{width:100%;order:-1;text-align:center}}
