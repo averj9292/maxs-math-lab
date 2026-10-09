@@ -83,8 +83,8 @@ else if(k==='missing'){answer=b;story=`${a} + □ = ${a+b}`;}
 else if(k==='story'){answer=op==='+'?a+b:a-b;story=op==='+'?`A class collected ${a} stickers, then collected ${b} more. How many stickers altogether?`:`A class had ${a} stickers and gave away ${b}. How many are left?`;}
 else answer=op==='+'?a+b:a-b;
 return {a,b,op,answer,skillId,story,steps,signature:`${skillId}:${a}:${op}:${b}:${steps[2]||''}`};}
-function fresh(){return {version:2,records:{},mastered:[],recent:[],completed:0,reviewClock:0,history:[]};}
-function normalize(v){const x=fresh();if(!v||typeof v!=='object')return x;x.records=v.records&&typeof v.records==='object'?v.records:{};x.mastered=Array.isArray(v.mastered)?v.mastered.filter(id=>!!byId(id)):[];x.recent=Array.isArray(v.recent)?v.recent.slice(-30):[];x.completed=Number.isFinite(v.completed)?Math.max(0,v.completed):0;x.history=Array.isArray(v.history)?v.history.slice(-120):[];return x;}
+function fresh(){return {version:3,records:{},mastered:[],recent:[],completed:0,reviewClock:0,history:[],support:null,supportCooldown:0};}
+function normalize(v){const x=fresh();if(!v||typeof v!=='object')return x;x.records=v.records&&typeof v.records==='object'?v.records:{};x.mastered=Array.isArray(v.mastered)?v.mastered.filter(id=>!!byId(id)):[];x.recent=Array.isArray(v.recent)?v.recent.slice(-30):[];x.completed=Number.isFinite(v.completed)?Math.max(0,v.completed):0;x.history=Array.isArray(v.history)?v.history.slice(-120):[];x.support=v.support&&byId(v.support.target)&&byId(v.support.foundation)&&Number.isInteger(v.support.remaining)&&v.support.remaining>0?{target:v.support.target,foundation:v.support.foundation,remaining:Math.min(2,v.support.remaining),startedAt:v.support.startedAt||0}:null;x.supportCooldown=Number.isFinite(v.supportCooldown)?v.supportCooldown:0;return x;}
 function available(data){return SKILLS.filter(s=>s.prereq.every(id=>data.mastered.includes(id)));}
 function masteryStatus(data,id){
 const r=data.records[id]||[];
@@ -96,6 +96,34 @@ for(let i=r.length-1;i>=0;i--){
 }
 return {attempts:r.length,streak:Math.min(streak,5),mastered:data.mastered.includes(id)};
 }
+/* Responsive coaching is a practice heuristic, not a diagnosis.
+ Two recent supported/missed attempts trigger two foundation exercises, then retry
+ the original skill. A cooldown prevents endless intervention loops. */
+function supportSuggestion(data,id){
+ const skill=byId(id);if(!skill||!skill.prereq.length)return null;
+ if(data.support&&data.support.remaining>0)return null;
+ const last=(data.records[id]||[]).slice(-4);
+ const struggles=last.filter(x=>!x.correct||x.help||x.retried).length;
+ if(last.length<3||struggles<2)return null;
+ if(data.supportCooldown&&data.completed-data.supportCooldown<6)return null;
+ return {target:id,foundation:skill.prereq[0],remaining:2,startedAt:data.completed};
+}
+function nextSkill(data,allowed){
+ const candidates=allowed.filter(s=>s&&available(data).some(v=>v.id===s.id));
+ const support=data.support;
+ if(support&&support.remaining>0){
+  const base=byId(support.foundation);
+  if(base&&candidates.some(x=>x.id===base.id))return {skill:base,coaching:true,returnTo:support.target};
+ }
+ const open=candidates.length?candidates:[byId('add-facts')];
+ const due=open.filter(s=>data.mastered.includes(s.id)&&data.completed-(data.history.filter(h=>h.id===s.id).at(-1)?.at||0)>=15);
+ if(data.completed%5===0&&due.length)return {skill:due[0],review:true};
+ const needs=open.filter(s=>!data.mastered.includes(s.id));
+ // Rotate eligible unmastered skills only among the first few.
+ const first=needs.slice(0,3);
+ if(first.length)return {skill:first[Math.floor(data.completed/3)%first.length],review:false};
+ return {skill:open[data.completed%open.length],review:true};
+}
 function choose(data){const open=available(data);const unmastered=open.filter(s=>!data.mastered.includes(s.id));const due=data.mastered.filter(id=>{const h=data.history.filter(x=>x.id===id).at(-1);return h&&data.completed-h.at>=Math.min(20,5+Math.floor((h.reviews||0)*3));});
 // Every fifth completed question, revisit a mastered skill due for review.
 if(due.length&&data.completed>0&&data.completed%5===0)return {skill:byId(due[0]),review:true};
@@ -104,12 +132,18 @@ return {skill:SKILLS[data.completed%SKILLS.length],review:true};}
 function record(data,id,{correct,help=false,retried=false}){const row={correct:!!correct,help:!!help,retried:!!retried};const arr=data.records[id]||(data.records[id]=[]);arr.push(row);if(arr.length>40)arr.shift();data.completed++;data.history.push({id,at:data.completed,correct:row.correct});if(data.history.length>120)data.history.shift();// Complete at least 10 questions for this skill, and finish with 5 correct
 // on the first attempt in a row. Hints and retries are welcome, but restart
 // this five-question streak. Stars and other progress are never taken away.
+if(data.support&&id===data.support.foundation){
+ data.support.remaining--;
+ if(data.support.remaining<=0){data.support=null;data.supportCooldown=data.completed;}
+}
 const status=masteryStatus(data,id);
 const mastered=status.attempts>=10&&status.streak>=5;
 let newly=false;if(mastered&&!data.mastered.includes(id)){data.mastered.push(id);newly=true;}
 // Reopen a skill if repeated review errors indicate fragile understanding.
 if(data.mastered.includes(id)&&arr.slice(-4).length===4&&arr.slice(-4).filter(x=>!x.correct).length>=2){data.mastered=data.mastered.filter(x=>x!==id);}
-return {newlyMastered:newly,status:masteryStatus(data,id)};}
+const suggestion=supportSuggestion(data,id);
+if(suggestion)data.support=suggestion;
+return {newlyMastered:newly,status:masteryStatus(data,id),supportStarted:!!suggestion};}
 /* Original optional mental-math models, using common number-sense strategies. */
 function cleverStrategy(p){
  if(!p||!Number.isInteger(p.a)||!Number.isInteger(p.b))return null;
@@ -191,5 +225,5 @@ for(let i=0;i<max;i++){if(p.op==='+'){const v=a[i]+b[i]+carry;steps.push(`In the
 else {if(a[i]<b[i]){let j=i+1;while(j<a.length&&a[j]===0)j++;if(j>=a.length){steps.push('Check the digits: this subtraction needs a larger top number.');break;}a[j]--;for(let k=j-1;k>i;k--)a[k]=9;a[i]+=10;steps.push(j===i+1?`Trade 1 ${names[j]} for 10 ${names[i]}. Now the top ${names[i]} digit is ${a[i]}.`:`The next column has zero. Trade 1 ${names[j]} into the columns between, then trade 1 ${names[i+1]} for 10 ${names[i]}. The top ${names[i]} digit becomes ${a[i]}.`);}
 steps.push(`In the ${names[i]} column: ${a[i]} − ${b[i]} = ${a[i]-b[i]}. Write ${a[i]-b[i]}.`);}}
 steps.push(`Put the answer digits together: ${p.answer}.`);return steps;}
-root.MathLearning={SKILLS,byId,problem,fresh,normalize,available,choose,record,masteryStatus,teaching,cleverStrategy,qualifies};
+root.MathLearning={SKILLS,byId,problem,fresh,normalize,available,choose,record,masteryStatus,teaching,cleverStrategy,qualifies,nextSkill,supportSuggestion};
 })(typeof window!=='undefined'?window:globalThis);
