@@ -206,3 +206,13 @@ body.world-entering{overflow:hidden}
 /* Angle diagrams do not reveal numerical answers. */
 .picture-angle{width:min(260px,100%);margin:0 auto;font-size:initial}
 .picture-angle svg{width:100%;height:175px;display:block}
+
+/* Build a pencil, rocket or collectible piece by piece. */
+.craft-workshop{display:flex;gap:9px;align-items:center;justify-content:center;padding:8px 12px;margin:10px 0;border:2px dashed #c4c8e7;border-radius:17px;background:#fffdfb}
+.craft-label{font-size:.63rem;max-width:60px;line-height:1.3;color:#8b66b0;font-weight:950;letter-spacing:.03em}
+.craft-reveal{position:relative;display:grid;place-items:center;width:72px;height:65px;flex-shrink:0}
+.craft-outline,.craft-colour{position:absolute;inset:0;display:grid;place-items:center;font-size:3rem;line-height:1;transition:clip-path .4s ease-out}
+.craft-outline{filter:grayscale(1);opacity:.23}
+.craft-colour{filter:drop-shadow(0 3px 4px #32395450);clip-path:inset(0 100% 0 0)}
+.craft-caption{font-size:.76rem;line-height:1.3;color:#57688e;font-weight:800;flex:1}
+@media(prefers-reduced-motion:reduce){.craft-colour{transition:none}}
