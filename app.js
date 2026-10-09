@@ -210,7 +210,7 @@ function updateWorldStage(){
 function gameView(){show('setup',false);show('worlds',false);show('map',false);show('game',true);theme();updateWorldStage();updateMissionDisplay();$('playmode').value=state.playmode;render()}
 function generate(){
  const skill=pickQuestionSkill();q=makeProblem(skill);currentSkillId=skill.id;
- answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorTraded=false;cleverOpen=false;cleverIndex=0;strokes=[];
+ answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorTraded=false;cleverOpen=false;cleverIndex=0;handsEquation='';handsMoved=0;strokes=[];
  $('feedback').textContent='';show('celebrate',false);show('teaching',false);show('regroup',false);show('retry',false);show('drawing',false);show('missionCelebration',false);save();render();
 }
 const expected=()=>q.answer!==undefined?q.answer:(q.op==='＋'?q.a+q.b:q.a-q.b);
@@ -312,6 +312,99 @@ function check(){
  if(missionFinished)celebrateMission(mission);
  show('retry',false);save();render();
 }
+
+/* Hands-on ten frames are deliberately unscored, entirely client-side,
+   and do not modify learning mastery or adventure progress. */
+let playgroundReturn='map', playgroundA=9,playgroundB=6,playgroundMoved=0;
+let handsMoved=0,handsEquation='';
+function tenFrame(el,a,b,moved,onMove,onUndo){
+ el.replaceChildren();
+ const row=document.createElement('div');row.className='hands-frames';
+ const makeFrame=(title,howMany,fillType)=>{
+  const box=document.createElement('div');box.className='hands-frame-wrap';
+  const head=document.createElement('strong');head.textContent=title;
+  const frame=document.createElement('div');frame.className='hands-tenframe';
+  if(fillType==='first')frame.dataset.dropzone='ten';
+  for(let i=0;i<10;i++){
+   const cell=document.createElement('button');cell.type='button';
+   cell.className='hands-cell';
+   cell.setAttribute('aria-label',title+' square '+(i+1));
+   const origin=fillType==='first'&&i<a;
+   const movedHere=fillType==='first'&&i>=a&&i<a+moved;
+   const remaining=fillType==='second'&&i<b-moved;
+   if(origin||movedHere||remaining){
+    const pebble=document.createElement('span');
+    pebble.className='hands-counter '+(origin?'first':movedHere?'shifted':'second');
+    cell.append(pebble);
+    cell.classList.add('filled');
+    if(remaining){cell.setAttribute('aria-label','Loose counter — tap to move to the first frame');cell.onclick=onMove;}
+    if(movedHere){cell.setAttribute('aria-label','Moved counter — tap to move back');cell.onclick=onUndo;}
+   }else if(fillType==='first'&&i>=a+moved){cell.classList.add('empty-target');cell.onclick=onMove;cell.setAttribute('aria-label','Empty space — tap to bring one counter here');}
+   frame.append(cell);
+  }
+  box.append(head,frame);return box;
+ };
+ row.append(makeFrame('First number: '+(a+moved),'first','first'),makeFrame('Second number: '+(b-moved),'second','second'));
+ el.append(row);
+ const explain=document.createElement('div');explain.className='hands-counts';
+ const stillNeeded=Math.max(0,10-a-moved);
+ explain.textContent=stillNeeded?'Move '+stillNeeded+' more '+(stillNeeded===1?'counter':'counters')+' to make 10.': '✨ Ten made! 10 + '+(b-moved)+' = '+(a+b);
+ el.append(explain);
+ const helper=document.createElement('p');helper.className='hands-tap-help';helper.textContent='Tap a purple counter to move it. Or drag it across the frames.';el.append(helper);
+ // On touch screens release inside the first frame; tapping works everywhere.
+ row.onpointerdown=e=>{
+  const target=e.target.closest?e.target.closest('.hands-cell'):null;
+  if(!target||!target.closest('.hands-frame-wrap'))return;
+  if(target.classList.contains('filled')&&target.closest('.hands-frame-wrap')===row.lastElementChild){
+   row._dragStart={x:e.clientX,y:e.clientY};
+  }
+ };
+ row.onpointerup=e=>{
+  if(!row._dragStart)return;
+  const start=row._dragStart;row._dragStart=null;
+  const d=Math.hypot((e.clientX||0)-start.x,(e.clientY||0)-start.y);
+  if(d>25&&onMove){e.preventDefault();onMove();}
+ };
+}
+function showHandsTutor(){
+ const clever=LE.cleverStrategy(q),valid=clever&&clever.name==='Make a 10'&&!checked;
+ show('cleverHands',!!valid&&cleverOpen);
+ if(!valid||!cleverOpen)return;
+ const signature=q.signature||q.a+':'+q.b+':'+q.op;
+ if(handsEquation!==signature){handsEquation=signature;handsMoved=0;}
+ const a=Math.max(q.a,q.b),b=Math.min(q.a,q.b),needed=Math.min(10-a,b);
+ handsMoved=Math.min(handsMoved,needed);
+ tenFrame($('cleverHandsBoard'),a,b,handsMoved,
+ ()=>{if(handsMoved<needed){handsMoved++;showHandsTutor()}},
+ ()=>{if(handsMoved>0){handsMoved--;showHandsTutor()}});
+ $('cleverHandsFeedback').textContent=handsMoved===needed?'⭐ You made a ten! '+(a+b)+' altogether.': 'See if you can fill all ten spaces.';
+}
+function playgroundRender(){
+ const a=playgroundA,b=playgroundB;
+ const need=Math.min(10-a,b);
+ playgroundMoved=Math.min(playgroundMoved,need);
+ $('playgroundQuestion').textContent=a+' + '+b+' = ?';
+ tenFrame($('playgroundBoard'),a,b,playgroundMoved,
+ ()=>{if(playgroundMoved<need){playgroundMoved++;playgroundRender()}},
+ ()=>{if(playgroundMoved>0){playgroundMoved--;playgroundRender()}});
+ $('playgroundFeedback').textContent=playgroundMoved>=need
+  ?'🎉 You made a ten! '+a+' + '+b+' = 10 + '+(b-need)+' = '+(a+b)+'. Amazing thinking!'
+  :'Move '+(need-playgroundMoved)+' '+(need-playgroundMoved===1?'counter':'counters')+' to make a full ten.';
+ $('playgroundUndo').disabled=playgroundMoved===0;
+}
+function openPlayground(){
+ const screens=['setup','game','map','worlds'];
+ playgroundReturn=screens.find(id=>!$(id).hidden)||'map';
+ stopVoice();screens.forEach(id=>show(id,false));show('playground',true);playgroundRender();
+}
+function closePlayground(){
+ show('playground',false);
+ if(playgroundReturn==='game')gameView();
+ else if(playgroundReturn==='worlds')worldsView();
+ else if(playgroundReturn==='setup')setup();
+ else mapView();
+}
+
 let cleverOpen=false,cleverIndex=0;
 function cleverRender(){
  const strategy=LE.cleverStrategy(q);
@@ -320,7 +413,8 @@ function cleverRender(){
  if(!exists){show('cleverPanel',false);return;}
  $('cleverBtn').textContent=cleverOpen?'🧠 Hide clever way':'🧠 Try a clever way';
  show('cleverPanel',cleverOpen);
- if(!cleverOpen)return;
+ if(!cleverOpen){show('cleverHands',false);return;}
+ showHandsTutor();
  $('cleverTitle').textContent=strategy.name;
  $('cleverExplanation').textContent=strategy.steps[cleverIndex];
  $('cleverStepCount').textContent=(cleverIndex+1)+' of '+strategy.steps.length;
@@ -361,7 +455,23 @@ function canvas(){const c=$('pad');const r=c.getBoundingClientRect();if(!r.width
 function redraw(){const c=$('pad'),ctx=c.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#233e88';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';for(const points of strokes){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(points.length===1){ctx.lineTo(points[0][0]+.1,points[0][1]+.1)}ctx.stroke()}}
 function point(e){const r=$('pad').getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
 $('pad').addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;$('pad').setPointerCapture(e.pointerId);strokes.push([point(e)]);redraw()});$('pad').addEventListener('pointermove',e=>{if(!drawing)return;strokes[strokes.length-1].push(point(e));redraw()});['pointerup','pointercancel'].forEach(event=>$('pad').addEventListener(event,()=>drawing=false));
-$('begin').onclick=()=>{state={...defaults(),initials:$('initials').value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2),avatar:setupAvatar,world:setupWorld,unlocked:[setupWorld],mystery:setupMystery};state.learning=LE.normalize(null);q=makeProblem(pickQuestionSkill());currentSkillId=q.skillId;answer=['','','',''];startAtLeft();save();mapView()};$('worldBtn').onclick=()=>{stopVoice();worldsView()};$('return').onclick=mapView;$('backToMap').onclick=()=>{stopVoice();save();mapView()};$('playFromMap').onclick=()=>enterWorld(state.world);$('mapCollection').onclick=worldsView;$('mathTopic').onchange=()=>{state.mathTopic=$('mathTopic').value;save();generate()};$('workBtn').onclick=()=>{workspace=true;save();render()};$('quickBtn').onclick=()=>{workspace=false;save();render()};$('quickInput').addEventListener('input',e=>{const str=e.target.value.replace(/\D/g,'').slice(0,4);answer=str.padStart(4,' ').split('').map(x=>x===' '?'':x);save();renderColumns()});$('check').onclick=check;$('retry').onclick=()=>{show('retry',false);$('feedback').textContent='Give it another try. You can do this!';render()};$('next').onclick=()=>{stopVoice();generate()};$('teachBtn').onclick=()=>{usedHelp=true;save();teach=teachingSteps();teachIndex=0;show('teaching',true);teachRender()};$('stepBtn').onclick=()=>{if(teachIndex<teach.length-1){teachIndex++;teachRender();stopVoice()}};$('cleverBtn').onclick=()=>{cleverOpen=!cleverOpen;cleverIndex=0;usedHelp=true;save();cleverRender()};
+$('begin').onclick=()=>{state={...defaults(),initials:$('initials').value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2),avatar:setupAvatar,world:setupWorld,unlocked:[setupWorld],mystery:setupMystery};state.learning=LE.normalize(null);q=makeProblem(pickQuestionSkill());currentSkillId=q.skillId;answer=['','','',''];startAtLeft();save();mapView()};$('worldBtn').onclick=()=>{stopVoice();worldsView()};$('return').onclick=mapView;$('backToMap').onclick=()=>{stopVoice();save();mapView()};$('playFromMap').onclick=()=>enterWorld(state.world);$('mapCollection').onclick=worldsView;$('mathTopic').onchange=()=>{state.mathTopic=$('mathTopic').value;save();generate()};$('workBtn').onclick=()=>{workspace=true;save();render()};$('quickBtn').onclick=()=>{workspace=false;save();render()};$('quickInput').addEventListener('input',e=>{const str=e.target.value.replace(/\D/g,'').slice(0,4);answer=str.padStart(4,' ').split('').map(x=>x===' '?'':x);save();renderColumns()});$('check').onclick=check;$('retry').onclick=()=>{show('retry',false);$('feedback').textContent='Give it another try. You can do this!';render()};$('next').onclick=()=>{stopVoice();generate()};$('teachBtn').onclick=()=>{usedHelp=true;save();teach=teachingSteps();teachIndex=0;show('teaching',true);teachRender()};$('stepBtn').onclick=()=>{if(teachIndex<teach.length-1){teachIndex++;teachRender();stopVoice()}};$('playgroundBtn').onclick=openPlayground;
+$('playgroundBack').onclick=closePlayground;
+$('playgroundProblem').onchange=()=>{
+ const [a,b]=$('playgroundProblem').value.split(',').map(Number);
+ playgroundA=a;playgroundB=b;playgroundMoved=0;playgroundRender();
+};
+$('playgroundRandom').onclick=()=>{
+ const options=[[9,6],[8,7],[7,5],[6,8],[9,4],[8,5]];
+ const next=options.filter(([a,b])=>a!==playgroundA||b!==playgroundB);
+ const [a,b]=next[Math.floor(Math.random()*next.length)];
+ playgroundA=a;playgroundB=b;playgroundMoved=0;
+ $('playgroundProblem').value=a+','+b;playgroundRender();
+};
+$('playgroundUndo').onclick=()=>{playgroundMoved=Math.max(0,playgroundMoved-1);playgroundRender()};
+$('playgroundReset').onclick=()=>{playgroundMoved=0;playgroundRender()};
+$('playgroundNext').onclick=()=>$('playgroundRandom').onclick();
+$('cleverBtn').onclick=()=>{cleverOpen=!cleverOpen;cleverIndex=0;usedHelp=true;save();cleverRender()};
 $('cleverPrev').onclick=()=>{cleverIndex=Math.max(0,cleverIndex-1);cleverRender()};
 $('cleverNext').onclick=()=>{const st=LE.cleverStrategy(q);if(st)cleverIndex=Math.min(st.steps.length-1,cleverIndex+1);cleverRender()};
 $('speakBtn').onclick=speak;$('tradeBtn').onclick=()=>{tutorTraded=!tutorTraded;pictorial('teachVisual',q,teachIndex);$('tradeBtn').textContent=tutorTraded?'↩️ Show before trading':'🔁 Trade 1 ten for 10 ones'};$('drawBtn').onclick=()=>{const open=$('drawing').hidden;show('drawing',open);if(open)requestAnimationFrame(canvas)};$('undo').onclick=()=>{strokes.pop();redraw()};$('clear').onclick=()=>{strokes=[];redraw()};
