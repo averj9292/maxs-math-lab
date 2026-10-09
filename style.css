@@ -202,3 +202,7 @@ body.world-entering{overflow:hidden}
 .tutor-trade{margin:7px auto 13px;display:block;max-width:100%;white-space:normal}
 .tutor-trade[hidden]{display:none}
 @media(max-width:520px){.math-choice{padding:10px}.math-visual{padding:10px}.picture-dot{width:13px;height:13px}.picture-place{gap:5px}.picture-blocks{gap:2px}.tutor-header{font-size:.71rem;flex-wrap:wrap}}
+
+/* Angle diagrams do not reveal numerical answers. */
+.picture-angle{width:min(260px,100%);margin:0 auto;font-size:initial}
+.picture-angle svg{width:100%;height:175px;display:block}
