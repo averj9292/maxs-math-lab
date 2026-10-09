@@ -20,6 +20,15 @@ A private-progress, offline-capable children's math adventure for approximately 
 - These exercises teach common make-ten number-sense methods with original implementations; they are not Greg Tang's proprietary games or lesson materials.
 - Works with tap-first interaction on touch devices; drag is supported when dropping onto the receiving frame.
 
+## Responsive practice and visual lesson cycle
+
+- **Watch:** a guided explanation with visual place-value models and, for numeric addition/subtraction, a second strategy using number jumps.
+- **Try with blocks:** children exchange 1 ten for 10 ones, or 1 hundred for 10 tens. The value does not change; the blocks are shown in a concrete visual display. Borrowing across zero can involve multiple exchanges.
+- **Solve myself:** hides the explanation so the child can complete the original challenge. Opening hints counts as supported work for mastery, but never removes a star or collectible.
+- **Responsive coaching:** once a skill has at least 3 recorded attempts and 2 of the last 4 required help or retry, the engine can offer 2 prerequisite practice questions, then return to ordinary practice. A cooldown avoids repeatedly interrupting a child on the same skill. This is a friendly heuristic, not a diagnosis.
+- **Review:** previously mastered, eligible skills are periodically reintroduced to check retention.
+- **Existing data stays** in the same local storage key, including worlds, stars, answers and prior learning. Older learning records are normalized with the new coaching fields.
+
 ## Scope and limitations
 
 This is **not** clinically validated, independently evaluated for learning outcomes, or certified to any provincial curriculum. It is an evolving family game. Grade labels and sequencing are approximations and require educator review. Visuals and hints support exploration but do not replace instruction from a teacher. Review the generated questions with a child at their actual current skill level.
