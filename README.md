@@ -13,6 +13,13 @@ A private-progress, offline-capable children's math adventure for approximately 
 - Optional Math Minute mode is just for play; timing is not used to decide mastery.
 - **Long adventures**: 12 missions per world, 10 completed problems per mission, plus repeatable bonus missions. World progress and educational skill mastery are separate tracks.
 
+## Mental Math Playground and optional hands-on tutor
+
+- A **Mental Math Playground** opens from the header without affecting stars, streaks, or skill mastery. Players choose a friendly addition challenge, tap counters or drag a loose counter into the first ten-frame, see the ten completed, undo moves, reset, or choose another puzzle.
+- Within **Teach me → Try a clever way**, a make-ten addition problem also offers a hands-on ten-frame where the child can move counters to build a ten themselves. Opening tutoring still marks help as used for mastery logic; playful experimentation outside a problem does not.
+- These exercises teach common make-ten number-sense methods with original implementations; they are not Greg Tang's proprietary games or lesson materials.
+- Works with tap-first interaction on touch devices; drag is supported when dropping onto the receiving frame.
+
 ## Scope and limitations
 
 This is **not** clinically validated, independently evaluated for learning outcomes, or certified to any provincial curriculum. It is an evolving family game. Grade labels and sequencing are approximations and require educator review. Visuals and hints support exploration but do not replace instruction from a teacher. Review the generated questions with a child at their actual current skill level.
