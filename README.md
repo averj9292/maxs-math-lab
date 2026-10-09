@@ -29,6 +29,28 @@ A private-progress, offline-capable children's math adventure for approximately 
 - **Review:** previously mastered, eligible skills are periodically reintroduced to check retention.
 - **Existing data stays** in the same local storage key, including worlds, stars, answers and prior learning. Older learning records are normalized with the new coaching fields.
 
+## Max Mode — unofficial fan-made engineering headquarters
+
+A surprise bonus lab inspired by Mark Rober and CrunchLabs. This mode uses an original design and the blue, red and yellow palette referenced in CrunchLabs' public style guide. The CrunchLabs name is attributed, linking to the official CrunchLabs site; this is **not an official CrunchLabs or Mark Rober product**, and it does not reproduce their official logo.
+
+**Enter the code** from the adventure world map:
+1. Press and hold the explorer avatar (the animal emoji in the world-map summary) for roughly one second, or tap it three times quickly. Keyboard Enter also arms code entry.
+2. Tap the world buttons in the order **Space → Drawing → Jungle → Space**.
+3. The world icons remain visible for code entry even if the worlds are locked. Ordinary world buttons behave exactly as before when code entry isn't armed.
+4. Return to the world map with the lab's Exit button. The same secret pattern works again next time.
+
+This is a playful easter egg, not a password or access-control system. The site's source is public; anyone inspecting the JavaScript can find the code.
+
+The secret mode includes three offline experiments:
+- **Launcher Lab:** Choose power and angle, predict where a simulated ball will land, then test and adjust settings. Complete three increasingly distant targets.
+- **Bridge Builder:** Use the fewest five-unit-strength beams needed to hold three cargo loads; see multiplication and efficient design principles.
+- **Chain Reaction:** Solve three missing-number addition/subtraction equations to activate a machine.
+- Three persistent inventor badges, a local experiment notebook and a final inventor certificate. These do not change adventure stars, school-math mastery or learning skill records.
+
+The launcher simulation is simplified and labelled as such; it does not promise accurate real-world ballistic measurements. Experiment notes and badges remain on this device and are included in the ordinary progress save.
+
+Brand context: https://www.crunchlabs.com/pages/press . All artwork and activities inside Max Mode are original. Do not add official logos without permission.
+
 ## Scope and limitations
 
 This is **not** clinically validated, independently evaluated for learning outcomes, or certified to any provincial curriculum. It is an evolving family game. Grade labels and sequencing are approximations and require educator review. Visuals and hints support exploration but do not replace instruction from a teacher. Review the generated questions with a child at their actual current skill level.
