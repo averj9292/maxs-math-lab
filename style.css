@@ -477,3 +477,9 @@ body.max-lab-active footer{color:#dce7f6}
  .max-code-active .map-stop,body.max-code-armed .map-avatar-secret,.max-heading-cursor,.max-bolt,.max-bridge-cargo,.max-badge.earned,.max-chain-node.lit,.max-launch-ball.max-ball-fly,.max-bridge-supports.max-bridge-shake{animation:none!important}
  .max-launch-ball,.max-chain-node{transition:none!important}
 }
+
+/* When the code is armed, even locked worlds reveal recognizable icons. */
+.max-code-active .map-stop.locked{filter:none;opacity:1;border-color:#fed103;cursor:pointer}
+.max-code-active .map-stop.locked .stop-art{filter:none}
+.max-code-active .map-stop:focus-visible{outline:4px solid #e63e30;outline-offset:5px}
+@media(prefers-reduced-motion:reduce){.max-code-active .map-stop{animation:none!important}}
