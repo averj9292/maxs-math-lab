@@ -123,8 +123,22 @@ function pictorial(id,p,step=0){
   label('Equal pieces of one whole');const grid=wrap('picture-fraction');for(let i=0;i<p.parts;i++)dot(grid,i===0?'picture-piece filled':'picture-piece');return;
  }
  if(p.visual==='shape'||p.visual==='angle'){
-  const caption=p.visual==='angle'?p.degrees+'°':'Count '+p.sides+' sides';label(caption);
-  const sh=wrap('picture-shape');sh.textContent=p.visual==='angle'?p.degrees===90?'◿':p.degrees===180?'⟷':'∠':p.sides===3?'△':p.sides===4?'□':p.sides===5?'⬟':p.sides===6?'⬡':'⯃';return;
+  const caption=p.visual==='angle'?'Look at the angle opening':'Trace and count the straight sides';label(caption);
+  const sh=wrap('picture-shape');
+  if(p.visual==='angle'){
+   sh.classList.add('picture-angle');
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+   svg.setAttribute('viewBox','0 0 240 160');svg.setAttribute('aria-label','Angle diagram');
+   const line=(x1,y1,x2,y2,color)=>{
+    const el=document.createElementNS('http://www.w3.org/2000/svg','line');
+    for(const [k,v] of Object.entries({x1,y1,x2,y2,stroke:color,'stroke-width':8,'stroke-linecap':'round'}))el.setAttribute(k,String(v));svg.append(el);
+   };
+   line(115,130,210,130,'#6c61d3');
+   const radians=p.degrees*Math.PI/180;
+   line(115,130,115+95*Math.cos(radians),130-95*Math.sin(radians),'#28a6a5');
+   sh.append(svg);
+  }else sh.textContent=p.sides===3?'△':p.sides===4?'□':p.sides===5?'⬟':p.sides===6?'⬡':'⯃';
+  return;
  }
  if(p.visual==='area'||p.visual==='rectangle'){
   label(p.visual==='area'?'Count the squares inside':'Count all sides around');const grid=wrap('picture-area');grid.style.gridTemplateColumns='repeat('+Math.min(p.b,10)+',minmax(0,1fr))';for(let i=0;i<Math.min(p.a,10)*Math.min(p.b,10);i++)dot(grid,'picture-tile');return;
@@ -299,7 +313,7 @@ function check(){
 function teachingSteps(){return LE.teaching(q).map(text=>({text,trade:/Trade|trade|zero/.test(text)}));}
 function speak(){if(!('speechSynthesis' in window)){$('feedback').textContent='Voice reading is not available in this browser.';return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(teach[teachIndex].text);u.lang='en-CA';u.rate=.85;speechSynthesis.speak(u)}
 function teachRender(){const step=teach[teachIndex];$('teachText').textContent=`Step ${teachIndex+1} of ${teach.length}: ${step.text}`;
- pictorial('teachVisual',q,teachIndex);$('tradeBtn').hidden=!(q.op==='−'&&teach.some(x=>x.trade));$('stepBtn').disabled=teachIndex===teach.length-1;show('regroup',!!step.trade);if(step.trade)$('regroup').textContent='🧱 Place-value trade: one group of ten is the same amount as ten ones. Draw the groups on your scratchpad.';}
+ pictorial('teachVisual',q,teachIndex);$('tradeBtn').hidden=!(q.op==='−'&&Math.floor(q.a/10)%10>0&&teach.some(x=>x.trade));$('stepBtn').disabled=teachIndex===teach.length-1;show('regroup',!!step.trade);if(step.trade)$('regroup').textContent='🧱 Place-value trade: one group of ten is the same amount as ten ones. Draw the groups on your scratchpad.';}
 function stopVoice(){if('speechSynthesis' in window)speechSynthesis.cancel()}
 function canvas(){const c=$('pad');const r=c.getBoundingClientRect();if(!r.width)return;const ratio=window.devicePixelRatio||1;c.width=Math.round(r.width*ratio);c.height=Math.round(210*ratio);const ctx=c.getContext('2d');ctx.scale(ratio,ratio);redraw()}
 function redraw(){const c=$('pad'),ctx=c.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#233e88';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';for(const points of strokes){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(points.length===1){ctx.lineTo(points[0][0]+.1,points[0][1]+.1)}ctx.stroke()}}
