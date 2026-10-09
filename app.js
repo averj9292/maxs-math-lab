@@ -203,7 +203,7 @@ function updateWorldStage(){
 function gameView(){show('setup',false);show('worlds',false);show('map',false);show('game',true);theme();updateWorldStage();updateMissionDisplay();$('playmode').value=state.playmode;render()}
 function generate(){
  const skill=pickQuestionSkill();q=makeProblem(skill);currentSkillId=skill.id;
- answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorMode='watch';tutorTradeCounts=null;tutorTraded=false;cleverOpen=false;cleverIndex=0;handsEquation='';handsMoved=0;strokes=[];
+ answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorMode='watch';tutorVisual='place';tutorTradeCounts=null;tutorTraded=false;cleverOpen=false;cleverIndex=0;handsEquation='';handsMoved=0;strokes=[];
  $('feedback').textContent='';show('celebrate',false);show('teaching',false);show('regroup',false);show('retry',false);show('drawing',false);show('missionCelebration',false);save();render();
 }
 const expected=()=>q.answer!==undefined?q.answer:(q.op==='＋'?q.a+q.b:q.a-q.b);
@@ -450,16 +450,108 @@ function cleverRender(){
   box.append(cap,value);models.append(box);
  });
 }
+/* Visual teaching: demonstrate, let children exchange blocks, then solve. */
+let tutorMode='watch',tutorTradeCounts=null,tutorVisual='place';
+function tutorUnits(){
+ if(!tutorTradeCounts){
+  const n=Math.max(0,Math.floor(q.a||0));
+  tutorTradeCounts=[n%10,Math.floor(n/10)%10,Math.floor(n/100)%10,Math.floor(n/1000)%10];
+ }
+ return tutorTradeCounts;
+}
+function renderTradeBoard(){
+ const box=$('tutorTradeBoard');box.replaceChildren();
+ const counts=tutorUnits(),names=['Ones','Tens','Hundreds','Thousands'];
+ const units=document.createElement('div');units.className='trade-units';
+ for(let i=3;i>=0;i--){
+  if(i>Math.max(1,Math.ceil(Math.log10(Math.max(1,q.a)+1))))continue;
+  const col=document.createElement('div');col.className='trade-unit';
+  const h=document.createElement('strong');h.textContent=names[i]+' ('+counts[i]+')';col.append(h);
+  const pieces=document.createElement('div');pieces.className='trade-pieces';
+  for(let k=0;k<Math.min(20,counts[i]);k++){
+   const piece=document.createElement('span');piece.className='trade-piece trade-'+i;pieces.append(piece);
+  }
+  if(counts[i]>20){const count=document.createElement('small');count.textContent='and '+(counts[i]-20)+' more';pieces.append(count)}
+  col.append(pieces);
+  if(i>0){
+   const trade=document.createElement('button');trade.type='button';trade.className='secondary trade-action';
+   trade.disabled=counts[i]<1||counts[i-1]>25;
+   trade.textContent='🔁 Exchange 1 '+names[i].slice(0,-1).toLowerCase()+' for 10 '+names[i-1].toLowerCase();
+   trade.onclick=()=>{
+    if(counts[i]<1)return;
+    counts[i]--;counts[i-1]+=10;
+    renderTradeBoard();
+    $('tutorTradeNotice').textContent='Good trade! The total amount is still '+q.a+'. We changed the groups, not the value.';
+   };
+   col.append(trade);
+  }
+  units.append(col);
+ }
+ box.append(units);
+ const proof=document.createElement('div');proof.className='trade-proof';
+ proof.textContent=counts.map((n,i)=>n*(10**i)).reduce((a,b)=>a+b,0)+' altogether — same value, different groups.';
+ box.append(proof);
+}
+function renderNumberJumps(){
+ const box=$('tutorLine');box.replaceChildren();
+ if(!['+','−'].includes(q.op)||!Number.isInteger(q.a)||!Number.isInteger(q.b)){
+  const note=document.createElement('p');note.textContent='A number line will be available for addition and subtraction.';box.append(note);return;
+ }
+ const sign=q.op==='+'?1:-1;
+ const tens=Math.floor(q.b/10)*10,ones=q.b%10;
+ const chunks=[tens,ones].filter(x=>x>0);
+ const start=document.createElement('div');start.className='jump-start';start.textContent='Start at '+q.a;box.append(start);
+ let value=q.a;
+ chunks.forEach(chunk=>{
+  value+=sign*chunk;
+  const step=document.createElement('div');step.className='jump-step';
+  const move=document.createElement('strong');move.textContent=(sign>0?'+':'−')+' '+chunk;
+  const stop=document.createElement('span');stop.textContent=String(value);
+  step.append(move,stop);box.append(step);
+ });
+ const tip=document.createElement('p');tip.className='jump-tip';
+ tip.textContent=chunks.length?'Jump in friendly tens, then ones.':'You can stay where you started.';
+ box.append(tip);
+}
+function tutorView(){
+ if($('teaching').hidden)return;
+ for(const [id,active] of [['tutorWatch',tutorMode==='watch'],['tutorTry',tutorMode==='try'],['tutorSolve',tutorMode==='solve']])$(id).classList.toggle('selected',active);
+ if(tutorMode==='solve'){
+  show('teaching',false);
+  $('learningStatus').textContent='Your turn! Try the answer with the support you just explored.';
+  return;
+ }
+ const isOperation=(q.op==='+'||q.op==='−')&&!q.story;
+ $('tutorTry').disabled=!isOperation;
+ show('tutorTradeBoard',tutorMode==='try'&&isOperation);
+ show('tutorLine',tutorMode==='watch'&&tutorVisual==='numberline');
+ show('teachVisual',tutorMode==='watch'&&tutorVisual!=='numberline');
+ show('tradeBtn',false);
+ if(tutorMode==='try'&&isOperation){
+  renderTradeBoard();
+  $('tutorInstruction').textContent='Move the place-value blocks yourself. Swap one ten for ten ones, or one hundred for ten tens.';
+  $('teachText').textContent='Try exchanging the blocks. The amount stays the same!';
+ }else{
+  $('tutorInstruction').textContent=tutorVisual==='numberline'?'Follow the jumps: tens first, then ones.':'Watch how the place values work, one step at a time.';
+  if(tutorVisual==='numberline')renderNumberJumps();
+ }
+}
 function teachingSteps(){return LE.teaching(q).map(text=>({text,trade:/Trade|trade|zero/.test(text)}));}
 function speak(){if(!('speechSynthesis' in window)){$('feedback').textContent='Voice reading is not available in this browser.';return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(teach[teachIndex].text);u.lang='en-CA';u.rate=.85;speechSynthesis.speak(u)}
 function teachRender(){const step=teach[teachIndex];$('teachText').textContent=`Step ${teachIndex+1} of ${teach.length}: ${step.text}`;
- pictorial('teachVisual',q,teachIndex);cleverRender();$('tradeBtn').hidden=!(q.op==='−'&&Math.floor(q.a/10)%10>0&&teach.some(x=>x.trade));$('stepBtn').disabled=teachIndex===teach.length-1;show('regroup',!!step.trade);if(step.trade)$('regroup').textContent='🧱 Place-value trade: one group of ten is the same amount as ten ones. Draw the groups on your scratchpad.';}
+ pictorial('teachVisual',q,teachIndex);cleverRender();tutorView();$('tradeBtn').hidden=!(q.op==='−'&&Math.floor(q.a/10)%10>0&&teach.some(x=>x.trade));$('stepBtn').disabled=teachIndex===teach.length-1;show('regroup',!!step.trade);if(step.trade)$('regroup').textContent='🧱 Place-value trade: one group of ten is the same amount as ten ones. Draw the groups on your scratchpad.';}
 function stopVoice(){if('speechSynthesis' in window)speechSynthesis.cancel()}
 function canvas(){const c=$('pad');const r=c.getBoundingClientRect();if(!r.width)return;const ratio=window.devicePixelRatio||1;c.width=Math.round(r.width*ratio);c.height=Math.round(210*ratio);const ctx=c.getContext('2d');ctx.scale(ratio,ratio);redraw()}
 function redraw(){const c=$('pad'),ctx=c.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#233e88';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';for(const points of strokes){ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(points.length===1){ctx.lineTo(points[0][0]+.1,points[0][1]+.1)}ctx.stroke()}}
 function point(e){const r=$('pad').getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
 $('pad').addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;$('pad').setPointerCapture(e.pointerId);strokes.push([point(e)]);redraw()});$('pad').addEventListener('pointermove',e=>{if(!drawing)return;strokes[strokes.length-1].push(point(e));redraw()});['pointerup','pointercancel'].forEach(event=>$('pad').addEventListener(event,()=>drawing=false));
-$('begin').onclick=()=>{state={...defaults(),initials:$('initials').value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2),avatar:setupAvatar,world:setupWorld,unlocked:[setupWorld],mystery:setupMystery};state.learning=LE.normalize(null);q=makeProblem(pickQuestionSkill());currentSkillId=q.skillId;answer=['','','',''];startAtLeft();save();mapView()};$('worldBtn').onclick=()=>{stopVoice();worldsView()};$('return').onclick=mapView;$('backToMap').onclick=()=>{stopVoice();save();mapView()};$('playFromMap').onclick=()=>enterWorld(state.world);$('mapCollection').onclick=worldsView;$('mathTopic').onchange=()=>{state.mathTopic=$('mathTopic').value;save();generate()};$('workBtn').onclick=()=>{workspace=true;save();render()};$('quickBtn').onclick=()=>{workspace=false;save();render()};$('quickInput').addEventListener('input',e=>{const str=e.target.value.replace(/\D/g,'').slice(0,4);answer=str.padStart(4,' ').split('').map(x=>x===' '?'':x);save();renderColumns()});$('check').onclick=check;$('retry').onclick=()=>{show('retry',false);$('feedback').textContent='Give it another try. You can do this!';render()};$('next').onclick=()=>{stopVoice();generate()};$('teachBtn').onclick=()=>{usedHelp=true;save();teach=teachingSteps();teachIndex=0;show('teaching',true);teachRender()};$('stepBtn').onclick=()=>{if(teachIndex<teach.length-1){teachIndex++;teachRender();stopVoice()}};$('playgroundBtn').onclick=openPlayground;
+$('begin').onclick=()=>{state={...defaults(),initials:$('initials').value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2),avatar:setupAvatar,world:setupWorld,unlocked:[setupWorld],mystery:setupMystery};state.learning=LE.normalize(null);q=makeProblem(pickQuestionSkill());currentSkillId=q.skillId;answer=['','','',''];startAtLeft();save();mapView()};$('worldBtn').onclick=()=>{stopVoice();worldsView()};$('return').onclick=mapView;$('backToMap').onclick=()=>{stopVoice();save();mapView()};$('playFromMap').onclick=()=>enterWorld(state.world);$('mapCollection').onclick=worldsView;$('mathTopic').onchange=()=>{state.mathTopic=$('mathTopic').value;save();generate()};$('workBtn').onclick=()=>{workspace=true;save();render()};$('quickBtn').onclick=()=>{workspace=false;save();render()};$('quickInput').addEventListener('input',e=>{const str=e.target.value.replace(/\D/g,'').slice(0,4);answer=str.padStart(4,' ').split('').map(x=>x===' '?'':x);save();renderColumns()});$('check').onclick=check;$('retry').onclick=()=>{show('retry',false);$('feedback').textContent='Give it another try. You can do this!';render()};$('next').onclick=()=>{stopVoice();generate()};$('coachTeach').onclick=()=>{workspace=true;show('workArea',true);usedHelp=true;save();teach=teachingSteps();teachIndex=0;tutorMode='watch';show('teaching',true);teachRender()};
+$('tutorWatch').onclick=()=>{tutorMode='watch';tutorVisual='place';teachRender()};
+$('tutorTry').onclick=()=>{usedHelp=true;tutorMode='try';save();tutorView()};
+$('tutorSolve').onclick=()=>{tutorMode='solve';tutorView()};
+$('tutorNumberLine').onclick=()=>{usedHelp=true;tutorMode='watch';tutorVisual='numberline';save();teachRender()};
+$('tutorPlaceValue').onclick=()=>{usedHelp=true;tutorMode='watch';tutorVisual='place';save();teachRender()};
+$('teachBtn').onclick=()=>{usedHelp=true;save();teach=teachingSteps();teachIndex=0;show('teaching',true);teachRender()};$('stepBtn').onclick=()=>{if(teachIndex<teach.length-1){teachIndex++;teachRender();stopVoice()}};$('playgroundBtn').onclick=openPlayground;
 $('playgroundBack').onclick=closePlayground;
 $('playgroundProblem').onchange=()=>{
  const [a,b]=$('playgroundProblem').value.split(',').map(Number);
