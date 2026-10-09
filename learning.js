@@ -16,6 +16,27 @@ const SKILLS=[
 {id:'missing',name:'Find the missing number',grade:3,description:'Use inverse operations to solve an equation.',kind:'missing',prereq:['add2-carry','sub2-borrow']},
 {id:'story',name:'Math in the real world',grade:3,description:'Decide whether to add or subtract in a word problem.',kind:'story',prereq:['missing']},
 {id:'mixed4',name:'Mixed multi-step challenge',grade:4,description:'Choose a strategy for two-step problems.',kind:'multi',prereq:['story','sub3-zero','add3-carry']}
+,{id:'equal-groups',name:'Equal groups',grade:2,description:'Count objects in equal groups.',kind:'groups',prereq:['add-facts']}
+,{id:'multiply-2-5-10',name:'Times tables: 2, 5 and 10',grade:3,description:'Use skip-counting and arrays for multiplication.',kind:'times-easy',prereq:['equal-groups']}
+,{id:'multiply-3-4',name:'Times tables: 3 and 4',grade:3,description:'Multiply by 3 and 4 using groups.',kind:'times-middle',prereq:['multiply-2-5-10']}
+,{id:'multiply-6-9',name:'Times tables: 6 to 9',grade:4,description:'Build efficient multiplication strategies.',kind:'times-harder',prereq:['multiply-3-4']}
+,{id:'divide-equal',name:'Sharing equally',grade:3,description:'Share a collection evenly.',kind:'divide-equal',prereq:['equal-groups']}
+,{id:'divide-facts',name:'Division facts',grade:3,description:'Undo multiplication with division.',kind:'divide-facts',prereq:['multiply-2-5-10','divide-equal']}
+,{id:'fraction-halves',name:'Halves, thirds and quarters',grade:2,description:'Identify equal parts of a whole.',kind:'fraction-parts',prereq:['add-facts']}
+,{id:'fraction-of-set',name:'Fractions of a group',grade:3,description:'Find one-half, one-third or one-quarter of a collection.',kind:'fraction-set',prereq:['fraction-halves']}
+,{id:'fraction-equivalent',name:'Equivalent fractions',grade:4,description:'Build equivalent fractions with visual models.',kind:'fraction-equivalent',prereq:['fraction-of-set']}
+,{id:'measurement-length',name:'Length and centimetres',grade:2,description:'Measure, compare and add lengths.',kind:'measure-length',prereq:['add-facts']}
+,{id:'measurement-convert',name:'Metres and centimetres',grade:3,description:'Convert between cm and m.',kind:'measure-convert',prereq:['measurement-length']}
+,{id:'measurement-mass',name:'Grams and kilograms',grade:3,description:'Connect grams to kilograms.',kind:'measure-mass',prereq:['measurement-length']}
+,{id:'time-clock',name:'Reading the clock',grade:2,description:'Read hours and minutes on a clock.',kind:'time-clock',prereq:['add-facts']}
+,{id:'time-elapsed',name:'Elapsed time',grade:3,description:'Find how long an activity takes.',kind:'time-elapsed',prereq:['time-clock']}
+,{id:'money-coins',name:'Counting Canadian coins',grade:2,description:'Add coins to make a total in cents.',kind:'money-coins',prereq:['add-facts']}
+,{id:'geometry-shapes',name:'2D shape properties',grade:2,description:'Identify sides and corners.',kind:'shape-sides',prereq:['add-facts']}
+,{id:'geometry-perimeter',name:'Perimeter',grade:3,description:'Measure distance around shapes.',kind:'perimeter',prereq:['geometry-shapes']}
+,{id:'geometry-area',name:'Area with square units',grade:3,description:'Count rows and columns of squares.',kind:'area',prereq:['equal-groups','geometry-shapes']}
+,{id:'geometry-angles',name:'Angles',grade:4,description:'Recognize and measure common angles.',kind:'angles',prereq:['geometry-shapes']}
+,{id:'data-graphs',name:'Reading picture graphs',grade:2,description:'Compare quantities from simple graphs.',kind:'data-graphs',prereq:['add-facts']}
+
 ];
 const byId=id=>SKILLS.find(s=>s.id===id);
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -24,6 +45,28 @@ const digits=n=>[n%10,Math.floor(n/10)%10,Math.floor(n/100)%10,Math.floor(n/1000
 function qualifies(kind,a,b){const x=digits(a),y=digits(b);const carry=x[0]+y[0]>=10,carryT=x[1]+y[1]+(carry?1:0)>=10;const borrow=x[0]<y[0],borrowT=x[1]-(borrow?1:0)<y[1];
 switch(kind){case 'add2-no':return a+b<100&&!carry;case 'add2-carry':return a+b<100&&carry;case 'sub2-no':return a>b&&!borrow;case 'sub2-borrow':return a>b&&borrow;case 'add3-no':return a+b<1000&&!carry&&!carryT;case 'add3-carry':return a+b<1000&&(carry||carryT);case 'sub3-no':return a>b&&!borrow&&!borrowT;case 'sub3-borrow':return a>b&&(borrow||borrowT);case 'sub3-zero':return a>b&&x[1]===0&&x[0]<y[0]&&x[2]>0;default:return true;}}
 function problem(skillId,rng=Math.random,avoid=[]){const s=byId(skillId)||SKILLS[0];const k=s.kind;let a,b,op,story='',answer,steps=[];for(let t=0;t<1000;t++){
+if(['groups','times-easy','times-middle','times-harder','divide-equal','divide-facts','fraction-parts','fraction-set','fraction-equivalent','measure-length','measure-convert','measure-mass','time-clock','time-elapsed','money-coins','shape-sides','perimeter','area','angles','data-graphs'].includes(k)){
+ const pick=(list)=>list[randomInt(rng,0,list.length-1)];
+ const set=(aa,bb,symbol,result,prompt,extra={})=>({a:aa,b:bb,op:symbol,answer:result,skillId,story:prompt,steps:[],...extra,signature:skillId+':'+aa+':'+bb+':'+symbol+':'+result});
+ if(k==='groups'){const g=randomInt(rng,2,6),size=randomInt(rng,2,5);return set(g,size,'×',g*size,g+' groups of '+size+' counters. How many counters altogether?',{visual:'groups'});}
+ if(k.startsWith('times-')){const factor=k==='times-easy'?pick([2,5,10]):k==='times-middle'?pick([3,4]):pick([6,7,8,9]);const other=randomInt(rng,2,10);return set(factor,other,'×',factor*other,'How much is '+factor+' × '+other+'?',{visual:'groups'});}
+ if(k.startsWith('divide')){const size=randomInt(rng,2,k==='divide-equal'?5:10);const groups=randomInt(rng,2,k==='divide-equal'?6:10);return set(groups*size,groups,'÷',size, k==='divide-equal'?'Share '+(groups*size)+' counters equally between '+groups+' friends. How many does each friend get?':'What is '+(groups*size)+' ÷ '+groups+'?',{visual:'groups'});}
+ if(k==='fraction-parts'){const denom=pick([2,3,4,6,8]);return set(1,denom,'fraction',denom,'One shape is split into '+denom+' equal pieces. How many pieces make one whole?',{visual:'fraction',parts:denom,shaded:1});}
+ if(k==='fraction-set'){const denominator=pick([2,3,4]);const numerator=randomInt(rng,2,7);const total=denominator*numerator;return set(total,denominator,'fraction',numerator,'What is 1/'+denominator+' of '+total+' counters?',{visual:'fraction-set',parts:denominator});}
+ if(k==='fraction-equivalent'){const denom=pick([2,3,4,5]);const mult=pick([2,3]);return set(1,denom,'fraction',denom*mult,'1/'+denom+' = '+mult+'/'+String.fromCharCode(9633)+'. What number belongs in the box?',{visual:'fraction',parts:denom,shaded:1});}
+ if(k==='measure-length'){const x=randomInt(rng,5,40),y=randomInt(rng,4,35);return set(x,y,'+',x+y,'A ribbon is '+x+' cm long. Another is '+y+' cm. How long are they together (in cm)?',{visual:'ruler'});}
+ if(k==='measure-convert'){const metres=randomInt(rng,1,9);return set(metres,100,'×',metres*100,metres+' metres = how many centimetres?',{visual:'ruler'});}
+ if(k==='measure-mass'){const kg=randomInt(rng,1,9);return set(kg,1000,'×',kg*1000,kg+' kilograms = how many grams?',{visual:'measure-mass'});}
+ if(k==='time-clock'){const hour=randomInt(rng,1,12);const minute=pick([0,15,30,45]);return set(hour,minute,'clock',minute,'The clock shows '+hour+':'+String(minute).padStart(2,'0')+'. How many minutes past the hour?',{visual:'clock'});}
+ if(k==='time-elapsed'){const start=randomInt(rng,7,16),dur=pick([15,30,45,60,90]);return set(start,dur,'elapsed',dur,'A game starts at '+(start>12?start-12:start)+':00 and lasts '+dur+' minutes. How many minutes does it last?',{visual:'clock'});}
+ if(k==='money-coins'){const values=[5,10,25,100],coin=pick(values),number=randomInt(rng,2,coin===100?5:8);return set(coin,number,'×',coin*number,'You have '+number+' coins worth '+coin+' cents each. How many cents altogether?',{visual:'coins'});}
+ if(k==='shape-sides'){const shapes=[[3,'triangle'],[4,'square'],[5,'pentagon'],[6,'hexagon'],[8,'octagon']];const row=pick(shapes);return set(row[0],0,'shape',row[0],'How many sides does a '+row[1]+' have?',{visual:'shape',sides:row[0]});}
+ if(k==='perimeter'){const x=randomInt(rng,3,20),y=randomInt(rng,2,14);return set(x,y,'perimeter',2*(x+y),'A rectangle is '+x+' cm long and '+y+' cm wide. What is its perimeter in cm?',{visual:'rectangle'});}
+ if(k==='area'){const x=randomInt(rng,2,10),y=randomInt(rng,2,10);return set(x,y,'area',x*y,'A rectangle has '+x+' rows of '+y+' square tiles. How many square tiles cover it?',{visual:'area'});}
+ if(k==='angles'){const degrees=pick([45,90,120,180]);return set(degrees,0,'angle',degrees,'What is the angle shown, in degrees?',{visual:'angle',degrees});}
+ if(k==='data-graphs'){const x=randomInt(rng,3,15),y=randomInt(rng,1,15);return set(x,y,'graph',Math.abs(x-y),'A graph shows '+x+' apples and '+y+' pears. How many more of one than the other?',{visual:'graph'});}
+}
+
 if(k==='add'||k==='sub'){a=randomInt(rng,2,19);b=randomInt(rng,1,Math.max(1,k==='sub'?a-1:20-a));op=k==='add'?'+':'−';}
 else if(k.startsWith('add2')||k.startsWith('sub2')){a=randomInt(rng,21,k.startsWith('add')?87:89);b=randomInt(rng,11,Math.min(k.startsWith('add')?99-a:a-1,78));op=k.startsWith('add')?'+':'−';}
 else if(k.startsWith('add3')||k.startsWith('sub3')){a=randomInt(rng,k==='sub3-zero'?300:120,k.startsWith('add')?887:899);b=randomInt(rng,101,Math.min(k.startsWith('add')?999-a:a-1,799));op=k.startsWith('add')?'+':'−';}
@@ -67,7 +110,22 @@ let newly=false;if(mastered&&!data.mastered.includes(id)){data.mastered.push(id)
 // Reopen a skill if repeated review errors indicate fragile understanding.
 if(data.mastered.includes(id)&&arr.slice(-4).length===4&&arr.slice(-4).filter(x=>!x.correct).length>=2){data.mastered=data.mastered.filter(x=>x!==id);}
 return {newlyMastered:newly,status:masteryStatus(data,id)};}
-function teaching(p){if(p.op==='multi')return [`First add the books: ${p.a} + ${p.b} = ${p.a+p.b}.`,`Then subtract the books lent out: ${p.a+p.b} − ${p.steps[2]} = ${p.answer}.`];if(p.skillId==='missing')return [`Think: what must we add to ${p.a} to make ${p.a+p.b}?`,`Use subtraction to undo addition: ${p.a+p.b} − ${p.a} = ${p.b}.`];
+function teaching(p){
+if(p.visual){
+ if(p.visual==='groups')return p.op==='÷'?[ 'Draw '+p.b+' circles for the groups.', 'Share '+p.a+' counters one at a time, equally.', 'Count one group: '+p.answer+' counters.' ]:[ 'Draw '+p.a+' equal groups with '+p.b+' in each.', 'Skip-count by '+p.b+': '+Array.from({length:p.a},(_,i)=>(i+1)*p.b).join(', ')+'.', 'There are '+p.answer+' altogether.' ];
+ if(p.visual==='fraction')return ['The bottom number tells how many EQUAL parts make a whole.', 'One part out of '+p.parts+' means one-'+p.parts+'.', 'Look at the shaded part; then answer the question.'];
+ if(p.visual==='fraction-set')return ['Make '+p.parts+' equal groups from '+p.a+' counters.', 'Every group gets the same number.', 'One group has '+p.answer+' counters.'];
+ if(p.visual==='shape')return ['Trace around the edges of the shape.', 'Count each straight side once.', 'This shape has '+p.answer+' sides.'];
+ if(p.visual==='rectangle')return ['Perimeter means the distance all the way around.', 'Add length and width twice: '+p.a+' + '+p.b+' + '+p.a+' + '+p.b+'.','That is '+p.answer+' cm.'];
+ if(p.visual==='area')return ['Area means how many unit squares cover a shape.', 'Count '+p.a+' rows with '+p.b+' squares in each.',p.a+' × '+p.b+' = '+p.answer+' square units.'];
+ if(p.visual==='graph')return ['Look at the two bars.', 'Compare '+p.a+' and '+p.b+' by subtracting the smaller from the larger.', 'The difference is '+p.answer+'.'];
+ if(p.visual==='clock')return ['One full turn of the minute hand is 60 minutes.','Check the minute hand and the time in the question.','The answer is '+p.answer+' minutes.'];
+ if(p.visual==='angle')return ['A right angle is 90 degrees.','Compare the opening with a right angle.','This angle measures '+p.answer+' degrees.'];
+ if(p.visual==='coins')return ['Draw '+p.b+' coins worth '+p.a+' cents each.','Skip-count by '+p.a+' cents '+p.b+' times.','The total is '+p.answer+' cents.'];
+ if(p.visual==='ruler')return ['A metre is 100 centimetres.','Use the numbers in the question and your place-value strategy.','The answer is '+p.answer+'.'];
+ if(p.visual==='measure-mass')return ['A kilogram is 1000 grams.','Multiply the number of kilograms by 1000.','The answer is '+p.answer+' grams.'];
+ }
+if(p.op==='multi')return [`First add the books: ${p.a} + ${p.b} = ${p.a+p.b}.`,`Then subtract the books lent out: ${p.a+p.b} − ${p.steps[2]} = ${p.answer}.`];if(p.skillId==='missing')return [`Think: what must we add to ${p.a} to make ${p.a+p.b}?`,`Use subtraction to undo addition: ${p.a+p.b} − ${p.a} = ${p.b}.`];
 const prefix=p.story?[`Read the story. “${p.op==='+'?'More' : 'Gave away'}” helps us decide to ${p.op==='+'?'add':'subtract'}.`]:[];
 const names=['ones','tens','hundreds','thousands'];const a=digits(p.a),b=digits(p.b);const max=Math.max(String(p.a).length,String(p.b).length,String(p.answer).length);let carry=0;const steps=[...prefix,`Line up the digits by place value. Start with the ones column.`];
 for(let i=0;i<max;i++){if(p.op==='+'){const v=a[i]+b[i]+carry;steps.push(`In the ${names[i]} column: ${a[i]} + ${b[i]}${carry?' + 1 carried':''} = ${v}. ${v>=10?`Write ${v%10} and carry 1 to the next column.`:`Write ${v}.`}`);carry=v>=10?1:0;}
