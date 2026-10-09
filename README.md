@@ -1,24 +1,24 @@
-# Max's Math Lab — Adaptive Learning Edition
+# Max's Math Lab — Adventure Learning Prototype
 
-An offline-capable family learning prototype for addition and subtraction, designed for grades 2–4. **Max is the co-creator and game tester.** No accounts, ads, analytics, external libraries or remote services. Progress saves automatically in the device's local browser storage. Clearing website data or switching site origins can erase progress.
+A private-progress, offline-capable children's math adventure for approximately Grades 2–4. Max is the co-creator and game tester. No login, tracking, advertising, or analytics. Progress, stars and unlocked worlds remain in this device's browser storage.
 
-## What changed
+## Child-friendly learning flow
 
-- 14 ordered skills with prerequisite unlocks: addition/subtraction foundations, two-digit regrouping, three-digit regrouping (including borrowing across zero), missing-number equations, word problems and multi-step challenges.
-- Algorithmically generated questions; recent signatures are avoided to reduce repeats.
-- Learning mastery is **not** based on stars: 7 of the last 8 attempts must be first-try correct without opening Teach Me, and the final 3 must also meet that standard. Wrong answers invite another try instead of showing the solution immediately. A question solved after a retry or hint still earns a star but does not count as independent mastery.
-- Previously mastered skills receive periodic review; repeated review errors reopen a skill. A parent-readable learning report shows mastery status.
-- Teaching steps describe place value and regrouping, including borrowing across zeros; read-aloud remains optional.
-- Existing local stars, avatar, worlds and collections are preserved when upgrading at the **same URL**. The new learning record starts fresh because old attempts do not reliably capture help/retries.
+- **Default: My learning path**. Introduces addition/subtraction progressively using prerequisite mastery. It does **not** automatically serve multiplication, fractions or advanced strands.
+- **Player choices**: Addition, Subtraction, Addition + Subtraction, or optional **Explore more math (harder)**. Changing topic does not reset mastery, adventure milestones or rewards.
+- **34 implemented prototype skills**, including the original 14 addition/subtraction skills and 20 additional skills spanning equal groups, multiplication, division, simple fractions, length, mass, time, Canadian coins, geometry, area and picture graphs. Advanced content must be deliberately selected.
+- **Mastery heuristic**: at least 10 completed exercises per skill, ending with 5 unaided, first-try correct exercises in a row. Retry/Teach Me can still earn adventure stars but do not count as successful first tries for mastery.
+- Short diagnostic feedback for common errors (including confusing perimeter and area, adding instead of multiplying, and choosing addition instead of subtraction). Feedback is heuristic, not an assessment of all possible misconceptions.
+- **Picture tutor** shows place-value manipulatives, equal groups, simple fractions, arrays/tiles, coins, comparisons and other visuals. Interactive regrouping shows a ten exchanged for ten ones. This remains a simplified introductory tutor, not a full animated mathematics pedagogy system.
+- Optional Math Minute mode is just for play; timing is not used to decide mastery.
+- **Long adventures**: 12 missions per world, 10 completed problems per mission, plus repeatable bonus missions. World progress and educational skill mastery are separate tracks.
 
-## Important limitations
+## Scope and limitations
 
-This is **not** a clinically validated or curriculum-certified adaptive assessment. Mastery thresholds are practical prototype heuristics, not proven learning measures. The app does not diagnose misconceptions with certainty. Teaching is text-first rather than a fully animated base-ten-block tutor. Current scope is addition/subtraction and related problems; a full grade 2–4 curriculum would also cover multiplication, division, fractions, measurement and geometry. A timed mode is for optional play, not mastery assessment.
+This is **not** clinically validated, independently evaluated for learning outcomes, or certified to any provincial curriculum. It is an evolving family game. Grade labels and sequencing are approximations and require educator review. Visuals and hints support exploration but do not replace instruction from a teacher. Review the generated questions with a child at their actual current skill level.
 
-## Publish
+## Publishing and privacy
 
-Upload the eight runtime files (`index.html`, `style.css`, `app.js`, `learning.js`, `sw.js`, `icon.svg`, `manifest.webmanifest`, `README.md`) to the GitHub repository root. GitHub Pages → deploy from `main` branch `/ (root)`. In iPad Safari open the URL, Share → Add to Home Screen. The website is publicly accessible. Do not add personal information to the source files.
+GitHub Pages publishes from the default branch. Installed iPad Home Screen apps stay at the same URL and receive updated files when they reconnect, sometimes requiring closing and reopening the app. Do not clear Safari website data unless you intend to lose this device's saved progress.
 
-## Test
-
-Run `node test-learning.js` locally to check generator arithmetic, constraints, skill prerequisites and mastery logic. Test touch interactions and Home Screen persistence on the real iPad before school use.
+All site illustrations, JavaScript and CSS are served from the same GitHub Pages origin. Do not add identifying details about the child to the website or source code.
