@@ -107,3 +107,33 @@ body.world-entering{overflow:hidden}
 @keyframes starDance{to{transform:scale(1.13) rotate(4deg);opacity:.75}}
 @media(max-width:520px){#game{padding:8px;border-width:4px}.world-stage{height:225px;margin-bottom:11px}.map-stop{min-height:122px}.map-stop .stop-art{font-size:2.3rem}.stage-emoji{font-size:2.7rem}.stage-destination strong{font-size:1.4rem}}
 @media(prefers-reduced-motion:reduce){.transition-avatar,.transition-stars,.stage-clouds,.stage-avatar{animation:none!important}.map-stop{transition:none}}
+
+/* More room to enjoy the adventure scenery behind the math. */
+#game{padding:clamp(16px,3.8vw,34px);background-position:center top}
+#game .world-stage{margin:2px 0 24px}
+#game .stats{margin:0 0 24px}
+#game .panel.lesson{margin:0 0 28px;padding:clamp(19px,4.2vw,35px);border-radius:27px}
+#game .panel.rewards{margin:0;padding:8px 18px;background:#fffffff0}
+#game .rewards .journey-details>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;padding:9px 2px;font-size:1rem;font-weight:900;color:#243b68}
+#game .rewards .journey-details>summary::-webkit-details-marker{display:none}
+#game .rewards .journey-details>summary:before{content:"▸";font-size:1.15rem;color:#8261c9;transition:transform .2s}
+#game .rewards .journey-details[open]>summary:before{transform:rotate(90deg)}
+.journey-peek{font-size:.72rem;font-weight:700;color:#5e7493;text-align:right}
+.journey-inside{padding:5px 5px 13px}
+#game .world-stage{border:5px solid #fff;outline:3px solid #ffffff75;outline-offset:-13px;box-shadow:0 11px 26px #132b5033,0 0 0 3px #b8f7ff50}
+#game .world-stage:after{border:0;border-radius:23px;background:linear-gradient(110deg,transparent 0%,#fff9e866 36%,transparent 64%) left center/220% 100% no-repeat;animation:worldBorderGleam 8s ease-in-out infinite;opacity:.5;pointer-events:none}
+#game .world-stage:before{background:linear-gradient(90deg,#1524428a,transparent 65%)}
+#game{animation:worldArrive .65s ease-out both}
+#game .world-stage .stage-emoji{animation:worldTwinkle 4.5s ease-in-out infinite}
+@keyframes worldBorderGleam{0%,12%,100%{background-position:100% 50%;opacity:.1}45%,58%{background-position:-80% 50%;opacity:.55}}
+@keyframes worldTwinkle{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(5deg) scale(1.09)}}
+@keyframes worldArrive{from{opacity:.6;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:520px){
+ #game{padding:14px;border-width:4px}
+ #game .world-stage{height:205px;margin-bottom:20px}
+ #game .stats{margin-bottom:20px}
+ #game .panel.lesson{padding:17px 15px;margin-bottom:24px}
+ #game .panel.rewards{padding:8px 12px}
+ .journey-peek{font-size:.62rem}
+}
+@media(prefers-reduced-motion:reduce){#game,#game .world-stage:after,#game .world-stage .stage-emoji{animation:none!important}}
