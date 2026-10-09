@@ -29,13 +29,13 @@
   <button id="maxPickChain" type="button" class="max-station-tab"><span>⚙️</span><strong>CHAIN REACTION</strong><small>Power the machine</small></button>
  </div>
  <section id="maxLabLauncher" class="max-lab-station">
-  <div class="max-lab-title"><span class="max-lab-number">EXPERIMENT 01</span><h3>🚀 LAUNCH LAB</h3><p>Your job: launch a test ball so it lands close to the target. Change one thing, test again, and see what happens.</p></div>
+  <div class="max-lab-title"><span class="max-lab-number">EXPERIMENT 01</span><h3>🚀 PING-PONG LAUNCH LAB</h3><p>Your job: launch a ping-pong ball so it lands close to the target. Change one thing, test again, and see what happens.</p></div>
   <div class="max-objective"><span>🎯 TARGET DISTANCE</span><strong id="maxLaunchTarget">18 units</strong><span id="maxLaunchRound">Challenge 1 of 3</span></div>
   <div id="maxLaunchTrack" class="max-launch-track" aria-label="Launcher test track">
    <div class="max-launch-ruler" aria-hidden="true">0 &nbsp;&nbsp;&nbsp;&nbsp; 10 &nbsp;&nbsp;&nbsp;&nbsp; 20 &nbsp;&nbsp;&nbsp;&nbsp; 30 &nbsp;&nbsp;&nbsp;&nbsp; 40</div>
    <span class="max-launch-machine" aria-hidden="true">🛠️</span>
    <span id="maxLaunchGoal" class="max-launch-goal" aria-hidden="true">🏁</span>
-   <span id="maxLaunchBall" class="max-launch-ball" aria-hidden="true">⚽</span>
+   <span id="maxLaunchBall" class="max-launch-ball" aria-hidden="true">⚪</span>
    <div class="max-launch-ground" aria-hidden="true"></div>
   </div>
   <div class="max-lab-controls">
@@ -48,9 +48,9 @@
   <div class="max-science-note">🔬 <strong>SCIENCE NOTE:</strong> This is a playful flight simulator, not a real-life measurement. Changing power and angle changes the landing distance.</div>
  </section>
  <section id="maxLabBridge" class="max-lab-station" hidden>
-  <div class="max-lab-title"><span class="max-lab-number">EXPERIMENT 02</span><h3>🌉 BRIDGE BUILDER</h3><p>Make your bridge strong enough to hold a load. Real engineers also try to build efficiently, without extra materials.</p></div>
+  <div class="max-lab-title"><span class="max-lab-number">EXPERIMENT 02</span><h3>🌉 SQUIRREL SUPPLY BRIDGE</h3><p>Help an adventurous squirrel deliver supplies by building a bridge strong enough to hold a load. Real engineers also try to build efficiently, without extra materials.</p></div>
   <div class="max-objective"><span>📦 CARGO WEIGHT</span><strong id="maxBridgeLoad">13 units</strong><span id="maxBridgeRound">Challenge 1 of 3</span></div>
-  <div class="max-bridge-scene"><div class="max-bridge-cargo" aria-hidden="true">📦 📦</div><div class="max-bridge-deck"></div><div id="maxBridgeSupports" class="max-bridge-supports" aria-label="Your bridge supports"></div><div class="max-bridge-ground"></div></div>
+  <div class="max-bridge-scene"><div class="max-bridge-cargo" aria-hidden="true">🐿️ 📦 🥜</div><div class="max-bridge-deck"></div><div id="maxBridgeSupports" class="max-bridge-supports" aria-label="Your bridge supports"></div><div class="max-bridge-ground"></div></div>
   <div class="max-bridge-controls"><button id="maxBeamMinus" type="button" class="max-count-btn" aria-label="Remove one support beam">−</button><div class="max-bridge-count"><strong id="maxBeams">3</strong><span>SUPPORT BEAMS</span></div><button id="maxBeamPlus" type="button" class="max-count-btn" aria-label="Add one support beam">+</button></div>
   <div id="maxBridgeFormula" class="max-bridge-formula">3 beams × 5 strength = 15 units</div>
   <div class="max-lab-actions"><button id="maxBridgeTest" type="button" class="max-do-btn">🔧 TEST MY BRIDGE!</button><button id="maxBridgeNext" type="button" class="max-next-btn" hidden>Next cargo →</button></div>
@@ -58,8 +58,8 @@
   <div class="max-science-note">💡 <strong>ENGINEER'S TRICK:</strong> A good design is strong enough *and* avoids wasting materials. Our pretend bridge uses simple multiplication rules.</div>
  </section>
  <section id="maxLabChain" class="max-lab-station" hidden>
-  <div class="max-lab-title"><span class="max-lab-number">EXPERIMENT 03</span><h3>⚙️ CHAIN REACTION</h3><p>Complete each math circuit to power a wacky invention. Every correct connection starts another part of the machine!</p></div>
-  <div class="max-chain-track" aria-label="Chain reaction machine progress"><span id="maxChainNode0" class="max-chain-node">⚙️</span><span class="max-chain-wire">━━</span><span id="maxChainNode1" class="max-chain-node">🔔</span><span class="max-chain-wire">━━</span><span id="maxChainNode2" class="max-chain-node">🚀</span></div>
+  <div class="max-lab-title"><span class="max-lab-number">EXPERIMENT 03</span><h3>⚙️ CHAIN REACTION MACHINE</h3><p>Complete each math circuit to power a wonderfully ridiculous invention. Every correct connection starts another part of the machine!</p></div>
+  <div class="max-chain-track" aria-label="Chain reaction machine progress"><span id="maxChainNode0" class="max-chain-node">⚙️</span><span class="max-chain-wire">━━</span><span id="maxChainNode1" class="max-chain-node">🔔</span><span class="max-chain-wire">━━</span><span id="maxChainNode2" class="max-chain-node">🎉</span></div>
   <div class="max-chain-card"><span id="maxChainStage">GEAR 1 OF 3</span><h4 id="maxChainQuestion">8 + □ = 12</h4><div id="maxChainChoices" class="max-chain-choices"></div><div id="maxChainFeedback" class="max-experiment-feedback" role="status" aria-live="polite">Find the missing number to start the first gear!</div><button id="maxChainNext" class="max-next-btn" type="button" hidden>Power the next gear →</button></div>
   <div class="max-science-note">🧠 <strong>ENGINEERING MINDSET:</strong> The first idea doesn't have to work. Keep testing until your machine does!</div>
  </section>
