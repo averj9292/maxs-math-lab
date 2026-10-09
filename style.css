@@ -243,3 +243,42 @@ body.world-entering{overflow:hidden}
 .tenframe-dot.already{background:#7ed4c3;border-color:#348a89;box-shadow:inset 0 -4px 0 #4eae9e}
 .tenframe-dot.moved{background:#f9cb6d;border-color:#be8f3d;box-shadow:inset 0 -4px 0 #deb052}
 .clever-jumps{flex-basis:100%;order:-1;border:2px dashed #a9b5e6;border-radius:40px;padding:10px;background:#ffffffb8;color:#505fa0;font-weight:900;text-align:center}
+
+/* Hands-on mental math playground: large, iPad-friendly ten-frames. */
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.playground-entry{background:#fff0cb;border:2px solid #f0cf79;color:#493e74;font-weight:900}
+.playground-view{margin:14px 0;padding:0 0 24px}
+.playground-view[hidden]{display:none}
+.playground-hero{border:5px solid #fff;border-radius:27px;background:linear-gradient(110deg,#eefafdde,#ffeefaed),url("./assets/world-drawing.svg") center/cover;box-shadow:0 9px 25px #24345130;padding:21px;text-align:center}
+.playground-hero #playgroundBack{float:left}
+.playground-hero .eyebrow{display:block;clear:both;padding-top:13px;color:#6d57a1;font-weight:950}
+.playground-hero h2{font-weight:950;font-size:clamp(1.6rem,5vw,2.4rem);color:#38418b;margin:8px}
+.playground-hero p{font-weight:750;color:#43648d;margin:8px auto;max-width:560px}
+.playground-card{margin:20px auto;border:5px solid #fff;border-radius:27px;background:#fffffff0;padding:clamp(12px,3.5vw,27px);box-shadow:0 12px 30px #24345133;max-width:850px}
+.playground-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px}
+.playground-toolbar label{font-size:.85rem;font-weight:850;color:#445a8c}
+.playground-toolbar select{max-width:180px;min-height:44px;background:white;font-weight:900;border:2px solid #bad9ee;border-radius:12px}
+.playground-question{text-align:center;font-size:clamp(2rem,7vw,3rem);font-weight:950;color:#413f9c;padding:15px}
+.playground-instructions{text-align:center;font-weight:750;color:#607392}
+.hands-board{border:3px solid #d7e7f5;border-radius:20px;padding:18px 12px;background:linear-gradient(125deg,#f2fbff,#fff9ef);max-width:730px;margin:15px auto}
+.hands-frames{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(8px,2vw,22px);align-items:start;justify-items:center}
+.hands-frame-wrap{min-width:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:11px}
+.hands-frame-wrap strong{font-size:clamp(.75rem,2.4vw,1rem);font-weight:900;color:#435b8e;text-align:center}
+.hands-tenframe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;border:4px solid #6b75b9;border-radius:14px;background:#dfeafa;padding:6px;width:min(100%,310px);touch-action:pan-y}
+.hands-cell{display:grid;place-items:center;min-width:0;aspect-ratio:1;min-height:34px;background:#fff;box-shadow:inset 0 0 0 2px #aec4e6;border:0;border-radius:9px;padding:0;touch-action:pan-y;cursor:pointer}
+.hands-cell.empty-target{background:#f3fff3;border:2px dashed #83bf9a;box-shadow:none}
+.hands-counter{display:block;width:75%;aspect-ratio:1;border-radius:50%;box-shadow:inset -3px -4px 0 #31446b3c,0 2px 3px #30466f33}
+.hands-counter.first{background:#69cbb9}
+.hands-counter.second{background:#9176e9}
+.hands-counter.shifted{background:#ffbc5d;animation:counterPop .24s ease-out}
+.hands-counts{text-align:center;font-weight:900;font-size:clamp(.88rem,2.4vw,1.07rem);color:#3c5e8d;margin:15px 0 5px}
+.hands-tap-help{font-size:.77rem;font-weight:700;text-align:center;color:#6b7f96;margin:6px 0 0}
+.hands-heading{font-weight:950;color:#495da0;margin:15px 0 0;text-align:center}
+.hands-feedback,.playground-feedback{text-align:center;font-weight:850;color:#43658c;padding:12px;min-height:42px}
+.clever-hands[hidden]{display:none}
+.playground-buttons{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.playground-buttons button{min-width:120px}
+.playground-footer{font-weight:750;color:#58738f;text-align:center}
+@keyframes counterPop{from{transform:scale(.4)}to{transform:scale(1)}}
+@media(max-width:560px){.header-actions{gap:5px}.header-actions button{font-size:.75rem;padding:8px}.hands-board{padding:12px 6px}.hands-frames{gap:7px}.hands-tenframe{gap:2px;padding:4px;border-width:3px}.hands-cell{min-height:22px;border-radius:6px}.hands-counter{width:83%}.hands-frame-wrap strong{font-size:.73rem}.playground-hero{padding:13px}.playground-buttons button{flex:1}}
+@media(prefers-reduced-motion:reduce){.hands-counter.shifted{animation:none!important}}
