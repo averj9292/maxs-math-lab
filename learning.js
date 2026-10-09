@@ -110,6 +110,65 @@ let newly=false;if(mastered&&!data.mastered.includes(id)){data.mastered.push(id)
 // Reopen a skill if repeated review errors indicate fragile understanding.
 if(data.mastered.includes(id)&&arr.slice(-4).length===4&&arr.slice(-4).filter(x=>!x.correct).length>=2){data.mastered=data.mastered.filter(x=>x!==id);}
 return {newlyMastered:newly,status:masteryStatus(data,id)};}
+/* Original optional mental-math models, using common number-sense strategies. */
+function cleverStrategy(p){
+ if(!p||!Number.isInteger(p.a)||!Number.isInteger(p.b))return null;
+ if(p.story&&p.skillId==='missing')return null;
+ const a=p.a,b=p.b,op=p.op;
+ const pack=(name,steps,parts)=>({name,steps,parts});
+ if(op==='+'&&a>=0&&b>=0){
+  if(a<10&&b<10&&a+b>10){
+   const first=Math.max(a,b),second=Math.min(a,b),need=10-first,rest=second-need;
+   if(need>0&&rest>=0)return pack('Make a 10',[
+    'Look at '+first+'. How many more make 10?',
+    'Break '+second+' into '+need+' and '+rest+'.',
+    first+' + '+need+' = 10. Then 10 + '+rest+' = '+(a+b)+'.'
+   ],[{label:'Start with',value:first},{label:'Take from '+second,value:need},{label:'Left over',value:rest},{label:'Friendly ten',value:10},{label:'Total',value:a+b}]);
+  }
+  if(a+b<1000){
+   const big=Math.max(a,b),small=Math.min(a,b),tens=Math.floor(small/10)*10,ones=small%10;
+   if(tens>0&&ones>0)return pack('Split tens and ones',[
+    'Break '+small+' into '+tens+' and '+ones+'.',
+    'Add the easy tens: '+big+' + '+tens+' = '+(big+tens)+'.',
+    'Then add '+ones+': '+(big+tens)+' + '+ones+' = '+(big+small)+'.'
+   ],[{label:'Start',value:big},{label:'Tens',value:tens},{label:'Ones',value:ones},{label:'After tens',value:big+tens},{label:'Total',value:a+b}]);
+  }
+  const near=10-Math.abs(b%10-10);
+  if(b>=8&&b%10>=8){const up=Math.ceil(b/10)*10,diff=up-b;
+   return pack('Add a friendly number',[
+    'Instead of adding '+b+', add '+up+' first.',
+    a+' + '+up+' = '+(a+up)+'.',
+    'We added '+diff+' too many. Take away '+diff+' to get '+(a+b)+'.'
+   ],[{label:'Friendly add',value:up},{label:'Too much',value:diff},{label:'Total',value:a+b}]);
+  }
+ }
+ if(op==='−'&&a>=b&&b>=0){
+  const ones=a%10;
+  if(a<=30&&ones>0&&b>=ones&&b-ones<=15){
+   const rest=b-ones;
+   return pack('Jump back to 10',[
+    'Start at '+a+'. Take away '+ones+' to land on '+(a-ones)+'.',
+    'You still need to take away '+rest+'.',
+    (a-ones)+' − '+rest+' = '+(a-b)+'.'
+   ],[{label:'Start',value:a},{label:'First jump',value:ones},{label:'Friendly ten',value:a-ones},{label:'Next jump',value:rest},{label:'Left',value:a-b}]);
+  }
+  if(b>0&&b%10>=8){
+   const near=Math.ceil(b/10)*10,extra=near-b;
+   return pack('Subtract a friendly number',[
+    'Subtract '+near+' instead of '+b+'.',
+    a+' − '+near+' = '+(a-near)+'.',
+    'That was '+extra+' too much. Add '+extra+' back to get '+(a-b)+'.'
+   ],[{label:'Start',value:a},{label:'Subtract',value:near},{label:'Add back',value:extra},{label:'Left',value:a-b}]);
+  }
+  const tens=Math.floor(b/10)*10,small=b%10;
+  if(tens>0&&small>0)return pack('Split what you take away',[
+   'Break '+b+' into '+tens+' and '+small+'.',
+   'First take away '+tens+': '+a+' − '+tens+' = '+(a-tens)+'.',
+   'Then take away '+small+': '+(a-tens)+' − '+small+' = '+(a-b)+'.'
+  ],[{label:'Start',value:a},{label:'Tens',value:tens},{label:'Ones',value:small},{label:'Left',value:a-b}]);
+ }
+ return null;
+}
 function teaching(p){
 if(p.visual){
  if(p.visual==='groups')return p.op==='÷'?[ 'Draw '+p.b+' circles for the groups.', 'Share '+p.a+' counters one at a time, equally.', 'Count one group: '+p.answer+' counters.' ]:[ 'Draw '+p.a+' equal groups with '+p.b+' in each.', 'Skip-count by '+p.b+': '+Array.from({length:p.a},(_,i)=>(i+1)*p.b).join(', ')+'.', 'There are '+p.answer+' altogether.' ];
@@ -132,5 +191,5 @@ for(let i=0;i<max;i++){if(p.op==='+'){const v=a[i]+b[i]+carry;steps.push(`In the
 else {if(a[i]<b[i]){let j=i+1;while(j<a.length&&a[j]===0)j++;if(j>=a.length){steps.push('Check the digits: this subtraction needs a larger top number.');break;}a[j]--;for(let k=j-1;k>i;k--)a[k]=9;a[i]+=10;steps.push(j===i+1?`Trade 1 ${names[j]} for 10 ${names[i]}. Now the top ${names[i]} digit is ${a[i]}.`:`The next column has zero. Trade 1 ${names[j]} into the columns between, then trade 1 ${names[i+1]} for 10 ${names[i]}. The top ${names[i]} digit becomes ${a[i]}.`);}
 steps.push(`In the ${names[i]} column: ${a[i]} − ${b[i]} = ${a[i]-b[i]}. Write ${a[i]-b[i]}.`);}}
 steps.push(`Put the answer digits together: ${p.answer}.`);return steps;}
-root.MathLearning={SKILLS,byId,problem,fresh,normalize,available,choose,record,masteryStatus,teaching,qualifies};
+root.MathLearning={SKILLS,byId,problem,fresh,normalize,available,choose,record,masteryStatus,teaching,cleverStrategy,qualifies};
 })(typeof window!=='undefined'?window:globalThis);
