@@ -203,7 +203,7 @@ function updateWorldStage(){
 function gameView(){show('setup',false);show('worlds',false);show('map',false);show('game',true);theme();updateWorldStage();updateMissionDisplay();$('playmode').value=state.playmode;render()}
 function generate(){
  const skill=pickQuestionSkill();q=makeProblem(skill);currentSkillId=skill.id;
- answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorMode='watch';tutorVisual='place';tutorTradeCounts=null;tutorTraded=false;cleverOpen=false;cleverIndex=0;handsEquation='';handsMoved=0;strokes=[];
+ answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorMode='watch';tutorVisual='place';tutorTradeCounts=null;tutorTradeSignature='';tutorTraded=false;cleverOpen=false;cleverIndex=0;handsEquation='';handsMoved=0;strokes=[];
  $('feedback').textContent='';show('celebrate',false);show('teaching',false);show('regroup',false);show('retry',false);show('drawing',false);show('missionCelebration',false);save();render();
 }
 const expected=()=>q.answer!==undefined?q.answer:(q.op==='＋'?q.a+q.b:q.a-q.b);
@@ -452,9 +452,11 @@ function cleverRender(){
  });
 }
 /* Visual teaching: demonstrate, let children exchange blocks, then solve. */
-let tutorMode='watch',tutorTradeCounts=null,tutorVisual='place';
+let tutorMode='watch',tutorTradeCounts=null,tutorTradeSignature='',tutorVisual='place';
 function tutorUnits(){
- if(!tutorTradeCounts){
+ const signature=q.signature||[q.a,q.b,q.op].join(':');
+ if(!tutorTradeCounts||tutorTradeSignature!==signature){
+  tutorTradeSignature=signature;
   const n=Math.max(0,Math.floor(q.a||0));
   tutorTradeCounts=[n%10,Math.floor(n/10)%10,Math.floor(n/100)%10,Math.floor(n/1000)%10];
  }
