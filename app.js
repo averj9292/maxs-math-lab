@@ -463,9 +463,9 @@ function tutorUnits(){
 function renderTradeBoard(){
  const box=$('tutorTradeBoard');box.replaceChildren();
  const counts=tutorUnits(),names=['Ones','Tens','Hundreds','Thousands'];
+ const highest=Math.min(3,Math.max(1,Math.floor(Math.log10(Math.max(1,q.a)))));
  const units=document.createElement('div');units.className='trade-units';
- for(let i=3;i>=0;i--){
-  if(i>Math.max(1,Math.ceil(Math.log10(Math.max(1,q.a)+1))))continue;
+ for(let i=highest;i>=0;i--){
   const col=document.createElement('div');col.className='trade-unit';
   const h=document.createElement('strong');h.textContent=names[i]+' ('+counts[i]+')';col.append(h);
   const pieces=document.createElement('div');pieces.className='trade-pieces';
