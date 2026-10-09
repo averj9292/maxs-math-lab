@@ -70,24 +70,17 @@ if(state.session){wrongOnQuestion=!!state.session.wrongOnQuestion;usedHelp=!!sta
 const BASIC_IDS=new Set(LE.SKILLS.slice(0,14).map(s=>s.id));
 const ADD_IDS=['add-facts','add2-no','add2-carry','add3-no','add3-carry'];
 const SUB_IDS=['sub-facts','sub2-no','sub2-borrow','sub3-no','sub3-borrow','sub3-zero'];
-function pickQuestionSkill(){
+function eligibleForTopic(){
  const topic=state.mathTopic;
- if(topic==='guided'){
-  const skills=LE.available(state.learning).filter(x=>BASIC_IDS.has(x.id));
-  const unmastered=skills.filter(x=>!state.learning.mastered.includes(x.id));
-  return (unmastered.length?unmastered:skills)[0]||LE.SKILLS[0];
- }
- if(topic==='advanced'){
-  const skills=LE.available(state.learning).filter(x=>!BASIC_IDS.has(x.id));
-  const unmastered=skills.filter(x=>!state.learning.mastered.includes(x.id));
-  return (unmastered.length?unmastered:skills)[0]||LE.byId('equal-groups');
- }
+ const available=LE.available(state.learning);
+ if(topic==='guided')return available.filter(x=>BASIC_IDS.has(x.id));
+ if(topic==='advanced')return available.filter(x=>!BASIC_IDS.has(x.id));
  const ids=topic==='addition'?ADD_IDS:topic==='subtraction'?SUB_IDS:ADD_IDS.concat(SUB_IDS);
- const unlocked=LE.available(state.learning).filter(x=>ids.includes(x.id));
- const pool=unlocked.length?unlocked:topic==='subtraction'?[LE.byId('sub-facts')]:[LE.byId('add-facts')];
- const weak=pool.filter(x=>!state.learning.mastered.includes(x.id));
- const selection=weak.length?weak:pool;
- return selection[state.learning.completed%selection.length];
+ const pool=available.filter(x=>ids.includes(x.id));
+ return pool.length?pool:[LE.byId(topic==='subtraction'?'sub-facts':'add-facts')];
+}
+function pickQuestionSkill(){
+ return LE.nextSkill(state.learning,eligibleForTopic()).skill;
 }
 function topicDescription(){
  const labels={guided:"My learning path picks math you're ready for.",addition:'Practice adding numbers.',subtraction:'Practice taking away.',mixed:'A mix of adding and taking away.',advanced:'New challenges for when you feel ready. You can switch back anytime.'};
@@ -104,7 +97,7 @@ function normalizeAnswer(){
  if(Array.isArray(answer)&&answer.length===3)answer=['',...answer];
  if(!Array.isArray(answer)||answer.length!==4)answer=['','','',''];
  const visible=answerColumns();
- for(let i=0;i<3;i++)if(!visible.includes(i))answer[i]='';
+ for(let i=0;i<4;i++)if(!visible.includes(i))answer[i]='';
  if(!visible.includes(selected)||answer.every(v=>!v))startAtLeft();
 }
 normalizeAnswer();
@@ -210,7 +203,7 @@ function updateWorldStage(){
 function gameView(){show('setup',false);show('worlds',false);show('map',false);show('game',true);theme();updateWorldStage();updateMissionDisplay();$('playmode').value=state.playmode;render()}
 function generate(){
  const skill=pickQuestionSkill();q=makeProblem(skill);currentSkillId=skill.id;
- answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorTraded=false;cleverOpen=false;cleverIndex=0;handsEquation='';handsMoved=0;strokes=[];
+ answer=['','','',''];startAtLeft();checked=false;wrongOnQuestion=false;usedHelp=false;tries=0;teach=[];teachIndex=0;tutorMode='watch';tutorTradeCounts=null;tutorTraded=false;cleverOpen=false;cleverIndex=0;handsEquation='';handsMoved=0;strokes=[];
  $('feedback').textContent='';show('celebrate',false);show('teaching',false);show('regroup',false);show('retry',false);show('drawing',false);show('missionCelebration',false);save();render();
 }
 const expected=()=>q.answer!==undefined?q.answer:(q.op==='＋'?q.a+q.b:q.a-q.b);
@@ -223,6 +216,11 @@ function render(){
  $('skillName').textContent=skill.name;$('skillDescription').textContent=skill.description;
  $('skillProgress').textContent=status.mastered?'✓ Mastered · Reviewing to keep it strong':`${Math.min(status.attempts,10)}/10 questions done · ${status.streak}/5 right in a row`;
  $('learningStatus').textContent=wrongOnQuestion&&!checked?'Try again! You can do it.':usedHelp?'Great job asking for help!':`Grade ${skill.grade} math · Take your time. Tap Teach me if you need help.`;
+ const support=state.learning.support;
+ const coaching=!!(support&&support.remaining>0&&currentSkillId===support.foundation);
+ show('coachNotice',coaching);
+ if(coaching)$('coachMessage').textContent='A quick foundation mission: '+skill.name+'. '+support.remaining+' practice '+(support.remaining===1?'question':'questions')+' before we return to '+(LE.byId(support.target)?.name||'your challenge')+'.';
+
  $('progress').textContent=`${state.correct} solved of ${state.attempts} completed · ${state.learning.mastered.length} of ${LE.SKILLS.length} skills mastered. World missions unlock adventures; learning unlocks harder math.`;
  show('workArea',workspace);show('quickArea',!workspace);show('keypad',workspace);$('workBtn').classList.toggle('selected',workspace);$('quickBtn').classList.toggle('selected',!workspace);
  $('quickInput').value=answer.join('').replace(/^0+(?=\d)/,'');$('quickInput').disabled=checked;
@@ -306,6 +304,8 @@ function check(){
  const mission=missionState(state.world);
  const missionFinished=mission.within===0;
  const result=LE.record(state.learning,currentSkillId,{correct:!wrongOnQuestion,help:usedHelp,retried:wrongOnQuestion});
+ if(result.supportStarted)$('feedback').textContent='🧩 Coach has an idea: we will practise a smaller step, then return to this challenge.';
+
  const before=state.unlocked.length;unlock();
  $('feedback').textContent=wrongOnQuestion?'You figured it out! Fixing a mistake is great learning.':usedHelp?'Nice work using a strategy!':'⭐ Great thinking!';
  if(result.newlyMastered||state.unlocked.length>before){$('celebrate').textContent=result.newlyMastered?'🧠 Skill mastered! A new challenge is ready.':'🎊 New world unlocked!';show('celebrate',true)}
