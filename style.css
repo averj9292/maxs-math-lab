@@ -282,3 +282,8 @@ body.world-entering{overflow:hidden}
 @keyframes counterPop{from{transform:scale(.4)}to{transform:scale(1)}}
 @media(max-width:560px){.header-actions{gap:5px}.header-actions button{font-size:.75rem;padding:8px}.hands-board{padding:12px 6px}.hands-frames{gap:7px}.hands-tenframe{gap:2px;padding:4px;border-width:3px}.hands-cell{min-height:22px;border-radius:6px}.hands-counter{width:83%}.hands-frame-wrap strong{font-size:.73rem}.playground-hero{padding:13px}.playground-buttons button{flex:1}}
 @media(prefers-reduced-motion:reduce){.hands-counter.shifted{animation:none!important}}
+
+/* Allow a child's finger to drag a loose counter rather than scrolling mid-drag. */
+.hands-frame-wrap:nth-child(2) .hands-cell.filled{touch-action:none}
+.hands-frame-wrap:nth-child(2) .hands-counter{cursor:grab}
+.hands-frame-wrap:nth-child(2) .hands-counter:active{cursor:grabbing}
