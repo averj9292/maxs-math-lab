@@ -363,7 +363,11 @@ function tenFrame(el,a,b,moved,onMove,onUndo){
   if(!row._dragStart)return;
   const start=row._dragStart;row._dragStart=null;
   const d=Math.hypot((e.clientX||0)-start.x,(e.clientY||0)-start.y);
-  if(d>25&&onMove){e.preventDefault();onMove();}
+  if(d>25&&onMove){
+   const first=row.children[0].children[1].getBoundingClientRect();
+   const within=e.clientX>=first.left&&e.clientX<=first.right&&e.clientY>=first.top&&e.clientY<=first.bottom;
+   if(within){e.preventDefault();onMove();}
+  }
  };
 }
 function showHandsTutor(){
