@@ -236,3 +236,10 @@ body.world-entering{overflow:hidden}
 .clever-controls span{font-size:.75rem;color:#536d8c;font-weight:850}
 .clever-panel .clever-reassurance{font-size:.77rem;text-align:center;color:#647e92;font-weight:750;margin:14px 0 2px}
 @media(max-width:520px){.clever-panel{padding:12px 8px}.clever-number-card{min-width:58px;padding:8px 5px}.clever-number-card strong{font-size:1.4rem}.clever-controls span{width:100%;order:-1;text-align:center}}
+
+/* A simple 2 × 5 frame makes number bonds concrete. */
+.clever-tenframe{order:-1;flex-basis:100%;display:grid;grid-template-columns:repeat(5,30px);justify-content:center;gap:5px;margin:0 auto 6px}
+.tenframe-dot{height:30px;width:30px;border:2px solid #b9c9e3;border-radius:9px;background:#fff}
+.tenframe-dot.already{background:#7ed4c3;border-color:#348a89;box-shadow:inset 0 -4px 0 #4eae9e}
+.tenframe-dot.moved{background:#f9cb6d;border-color:#be8f3d;box-shadow:inset 0 -4px 0 #deb052}
+.clever-jumps{flex-basis:100%;order:-1;border:2px dashed #a9b5e6;border-radius:40px;padding:10px;background:#ffffffb8;color:#505fa0;font-weight:900;text-align:center}
