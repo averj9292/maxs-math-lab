@@ -19,3 +19,45 @@ body.theme-drawing{background:#eef4ff}body.theme-space{background:#e8eaff}body.t
 .columns.digits-1{grid-template-columns:repeat(2,minmax(0,1fr));max-width:210px}
 .columns.digits-2{grid-template-columns:repeat(3,minmax(0,1fr));max-width:310px}
 .columns.digits-3{grid-template-columns:repeat(4,minmax(0,1fr));max-width:400px}
+
+/* WORLD ADVENTURE ART — original locally hosted SVG environments.
+   Illustration is behind the buttons; mathematical content stays readable. */
+body.theme-drawing{--world-art:url("./assets/world-drawing.svg");--world-accent:#ffe1ac}
+body.theme-space{--world-art:url("./assets/world-space.svg");--world-accent:#e1d6ff}
+body.theme-ocean{--world-art:url("./assets/world-ocean.svg");--world-accent:#b7f6ff}
+body.theme-jungle{--world-art:url("./assets/world-jungle.svg");--world-accent:#c7facb}
+body.theme-castle{--world-art:url("./assets/world-castle.svg");--world-accent:#fce4ff}
+body.theme-mystery{--world-art:url("./assets/world-mystery.svg");--world-accent:#dec8ff}
+.adventure-map{background-image:var(--world-art,url("./assets/world-drawing.svg"));background-position:center;background-size:cover;background-repeat:no-repeat}
+.adventure-map:before{z-index:0;border:11px dashed #fff9d5;box-shadow:0 0 0 3px #40666640;opacity:.8}
+.map-stop{z-index:2;overflow:hidden;isolation:isolate;background-position:center;background-size:cover;background-repeat:no-repeat;border:4px solid white;box-shadow:0 8px 0 #586f7e70,0 14px 25px #17334a35}
+.map-stop:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(255,255,255,.93) 0%,rgba(255,255,255,.62) 48%,rgba(255,255,255,.12) 100%);z-index:-1}
+.map-stop.stop-0{background-image:url("./assets/world-drawing.svg")}
+.map-stop.stop-1{background-image:url("./assets/world-space.svg")}
+.map-stop.stop-2{background-image:url("./assets/world-ocean.svg")}
+.map-stop.stop-3{background-image:url("./assets/world-jungle.svg")}
+.map-stop.stop-4{background-image:url("./assets/world-castle.svg")}
+.map-stop.stop-5{background-image:none;background-color:#fff;border-style:dashed}
+.map-stop.stop-5:before{background:none}
+.map-stop.locked{filter:grayscale(.9);opacity:.85}
+.map-stop.current{border-color:#ffca55;box-shadow:0 8px 0 #cb964b,0 14px 25px #17334a35}
+.map-stop strong,.map-stop small{color:#253752;text-shadow:0 1px 0 #fff}
+.map-stop .stop-art{filter:drop-shadow(0 3px 2px #fff)}
+.map-hint{z-index:3;background:#fffffff0;border-radius:16px;padding:9px 12px;box-shadow:0 4px 12px #223b4a28}
+#game{position:relative;isolation:isolate;padding:20px;border-radius:28px;margin-top:12px;overflow:hidden}
+#game:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#ffffff20,#ffffff30),var(--world-art,url("./assets/world-drawing.svg"));background-size:cover;background-position:center;background-attachment:local;z-index:-1;pointer-events:none}
+#game>.panel,#game>.stats,#game>.welcome-strip{position:relative}
+#game .panel{background:#fffffff2;backdrop-filter:blur(3px)}
+#game .question-card{background:#fff;border:2px solid #dae0f8}
+#game .welcome-strip{background:#ffffffe6;border:2px solid var(--world-accent,#dce8f5)}
+#game .stats>div{background:#ffffffef}
+#worldGrid .worldtile{background-size:cover;background-position:center;position:relative;overflow:hidden;text-shadow:0 1px 2px #fff}
+#worldGrid .worldtile:before{content:"";position:absolute;inset:0;background:#ffffffad}
+#worldGrid .worldtile>*{position:relative}
+#worldGrid .worldtile:nth-child(1){background-image:url("./assets/world-drawing.svg")}
+#worldGrid .worldtile:nth-child(2){background-image:url("./assets/world-space.svg")}
+#worldGrid .worldtile:nth-child(3){background-image:url("./assets/world-ocean.svg")}
+#worldGrid .worldtile:nth-child(4){background-image:url("./assets/world-jungle.svg")}
+#worldGrid .worldtile:nth-child(5){background-image:url("./assets/world-castle.svg")}
+#worldGrid .worldtile:nth-child(6){background-image:none}
+@media(max-width:520px){#game{padding:8px;border-radius:20px}.map-hint{max-width:44%;font-size:.7rem}}
