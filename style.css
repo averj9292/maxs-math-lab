@@ -287,3 +287,36 @@ body.world-entering{overflow:hidden}
 .hands-frame-wrap:nth-child(2) .hands-cell.filled{touch-action:none}
 .hands-frame-wrap:nth-child(2) .hands-counter{cursor:grab}
 .hands-frame-wrap:nth-child(2) .hands-counter:active{cursor:grabbing}
+
+/* Teaching-first layout — support when needed, never block the adventure. */
+.coach-notice{background:#fff7df;border:3px solid #f1d387;border-radius:18px;padding:12px 14px;margin:13px 0;color:#655029;box-shadow:0 5px 0 #eddaaa60;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.coach-notice[hidden]{display:none}
+.coach-notice strong{font-weight:950;color:#685098}
+.coach-notice span{flex:1;min-width:165px;font-size:.87rem;font-weight:750;line-height:1.45}
+.coach-notice button{min-height:42px;font-size:.84rem}
+.tutor-selector,.strategy-other{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}
+.tutor-selector button{flex:1;min-width:105px;padding:10px;font-size:.87rem;font-weight:900}
+.tutor-selector button.selected{border-color:#769ad9;background:#e5eeff;color:#314e91}
+.tutor-instruction{padding:11px 13px;background:#f0f6ff;color:#385278;font-weight:790;line-height:1.5;border-radius:14px;margin:10px 0}
+.strategy-other button{flex:1;min-width:130px;font-weight:750}
+.tutor-numberline{background:#fff;border:3px solid #d1e4ef;border-radius:20px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;padding:17px 10px;margin:13px 0}
+.tutor-numberline[hidden],.tutor-trade-board[hidden]{display:none}
+.jump-start{background:#d8f4ed;color:#327c79;border:2px solid #7bc7b3;border-radius:15px;padding:14px;font-size:1.1rem;font-weight:900}
+.jump-step{display:flex;align-items:center;gap:8px}
+.jump-step strong{background:#feebb5;border:2px solid #f3c866;color:#835e19;padding:8px;border-radius:10px;font-size:.95rem}
+.jump-step:before{content:'➜';color:#8298b6;font-size:1.35rem}
+.jump-step span{background:#e8e3fa;border:2px solid #bcb0ed;color:#51479e;font-size:1.2rem;font-weight:950;padding:12px;border-radius:14px}
+.jump-tip{flex-basis:100%;font-size:.76rem;text-align:center;color:#637e92;font-weight:800;margin:3px 0}
+.tutor-trade-board{background:linear-gradient(130deg,#f1fbff,#fffcf2);border:2px solid #c5e3e6;border-radius:19px;padding:13px 8px;margin:15px 0}
+.trade-units{display:flex;align-items:flex-start;justify-content:center;gap:9px;flex-wrap:wrap}
+.trade-unit{flex:1;min-width:105px;max-width:185px;border-radius:14px;border:2px solid #cfdaea;background:#fff;padding:10px;text-align:center}
+.trade-unit strong{display:block;font-size:.85rem;color:#3f5783;margin-bottom:10px}
+.trade-pieces{display:flex;justify-content:center;align-items:flex-start;align-content:start;flex-wrap:wrap;gap:3px;min-height:75px}
+.trade-piece{display:block;background:#f2c56d;border:1px solid #ae893d;border-radius:3px;width:11px;height:11px}
+.trade-piece.trade-1{background:#6ed7c2;border-color:#398f80;width:9px;height:42px}
+.trade-piece.trade-2{background:repeating-linear-gradient(#88b9e3 0 6px,#6496bd 6px 8px);border-color:#437ca5;width:30px;height:30px}
+.trade-piece.trade-3{background:#a68fea;border-color:#6e51a1;width:37px;height:37px}
+.trade-action{font-size:.72rem;min-height:38px;padding:6px;margin-top:10px;line-height:1.3;width:100%;white-space:normal}
+.trade-proof{font-weight:850;font-size:.82rem;text-align:center;color:#446a8b;margin-top:12px}
+.tutor-trade-notice{font-weight:800;font-size:.83rem;color:#468078;text-align:center;margin:8px 0}
+@media(max-width:520px){.tutor-selector button{min-width:82px;padding:9px 5px;font-size:.76rem}.trade-unit{min-width:95px;padding:7px}.trade-pieces{min-height:68px}.coach-notice{padding:10px}}
