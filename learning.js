@@ -146,7 +146,7 @@ function cleverStrategy(p){
   const ones=a%10;
   if(a<=30&&ones>0&&b>=ones&&b-ones<=15){
    const rest=b-ones;
-   return pack('Jump back to 10',[
+   return pack('Jump back to a ten',[
     'Start at '+a+'. Take away '+ones+' to land on '+(a-ones)+'.',
     'You still need to take away '+rest+'.',
     (a-ones)+' − '+rest+' = '+(a-b)+'.'
