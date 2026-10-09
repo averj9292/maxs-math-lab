@@ -57,7 +57,17 @@ function celebrateMission(m){
 }
 
 const defaults=()=>({initials:'',avatar:0,world:'drawing',unlocked:['drawing'],mystery:'surprise',stars:0,streak:0,best:0,correct:0,attempts:0,grade:'3',operation:'mixed',playmode:'practice',skillIndex:0,skillResults:{},reviewQueue:[],recentQuestions:[],learning:null,worldProgress:{},mathTopic:'guided'});
-let state=defaults();try{const saved=JSON.parse(localStorage.getItem(STORE));if(saved&&typeof saved==='object')state={...state,...saved}}catch(e){}
+let state=defaults(),initialStorageError='';
+try{
+ const raw=localStorage.getItem(STORE);
+ if(raw!==null){
+  const saved=JSON.parse(raw);
+  if(!saved||typeof saved!=='object'||Array.isArray(saved))throw Error('Invalid saved game');
+  if(!Number.isInteger(saved.stars)||saved.stars<0||saved.stars>10000000)throw Error('Invalid saved stars');
+  if(!Array.isArray(saved.unlocked)||saved.unlocked.some(w=>!worlds.some(x=>x[0]===w)))throw Error('Invalid saved worlds');
+  state={...state,...saved};
+ }
+}catch(e){initialStorageError='⚠️ The saved game could not be read. Your previous progress has not been deliberately erased. Please download a backup from Parent settings before continuing.'}
 let setupAvatar=0,setupWorld='drawing',setupMystery='surprise',q={a:44,b:28,op:'−',n:1},answer=['','','',''],selected=3,workspace=true,checked=false,teach=[],teachIndex=0,roundEnd=0,timerId=null,strokes=[],drawing=false;if(state.session&&state.session.q&&Array.isArray(state.session.answer)){({q,answer,selected,workspace,checked}=state.session)}
 // Preserve the existing device's stars, avatar and worlds when upgrading.
 const LE=MathLearning;
@@ -166,7 +176,7 @@ function learningReport(){const box=$('learningReport');box.replaceChildren();fo
 const backupPayload=()=>({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}});
 let storageProblem=false;
 function storageWarning(message){storageProblem=true;const node=$('storageStatus');if(node){node.textContent=message;node.hidden=false}}
-const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(backupPayload()));if(storageProblem){storageProblem=false;const node=$('storageStatus');if(node){node.hidden=true;node.textContent=''}}return true}catch(e){storageWarning('⚠️ Progress is NOT saving on this device. Please check Safari storage settings or free up space. Keep this page open and download a backup in Parent settings.');return false}};
+const save=()=>{if(initialStorageError){storageWarning(initialStorageError);return false}try{localStorage.setItem(STORE,JSON.stringify(backupPayload()));if(storageProblem){storageProblem=false;const node=$('storageStatus');if(node){node.hidden=true;node.textContent=''}}return true}catch(e){storageWarning('⚠️ Progress is NOT saving on this device. Please check Safari storage settings or free up space. Keep this page open and download a backup in Parent settings.');return false}};
 function validBackup(data){
  if(!data||typeof data!=='object'||Array.isArray(data))throw Error('This file does not contain valid game progress.');
  if(data.format!=='maxmath-progress-backup'||data.version!==1)throw Error('This is not a supported Max’s Math Lab backup.');
@@ -622,4 +632,4 @@ $('cleverNext').onclick=()=>{const st=LE.cleverStrategy(q);if(st)cleverIndex=Mat
 $('speakBtn').onclick=speak;$('tradeBtn').onclick=()=>{tutorTraded=!tutorTraded;pictorial('teachVisual',q,teachIndex);$('tradeBtn').textContent=tutorTraded?'↩️ Show before trading':'🔁 Trade 1 ten for 10 ones'};$('drawBtn').onclick=()=>{const open=$('drawing').hidden;show('drawing',open);if(open)requestAnimationFrame(canvas)};$('undo').onclick=()=>{strokes.pop();redraw()};$('clear').onclick=()=>{strokes=[];redraw()};
 ['playmode'].forEach(id=>$(id).addEventListener('change',()=>{state[id]=$ (id).value;save();if(id==='playmode'){clearInterval(timerId);timerId=null;if(state.playmode==='minute'){roundEnd=Date.now()+60000;timerId=setInterval(()=>{const left=Math.max(0,Math.ceil((roundEnd-Date.now())/1000));$('timer').textContent=`⏱️ ${left}s`;if(left===0){clearInterval(timerId);timerId=null;$('check').disabled=true;$('feedback').textContent='⏰ Time is up! Great effort. Change to Practice Lab to continue.'}},250)}else{$('timer').textContent='';$('check').disabled=false}}generate()}));
 
-if(localStorage.getItem(STORE)){if(!q.skillId||q.answer===undefined){q=makeProblem(pickQuestionSkill());answer=['','','',''];startAtLeft();checked=false;}currentSkillId=q.skillId||LE.choose(state.learning).skill.id;save();mapView()}else setup();window.MaxMode?.init();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if(!initialStorageError&&localStorage.getItem(STORE)){if(!q.skillId||q.answer===undefined){q=makeProblem(pickQuestionSkill());answer=['','','',''];startAtLeft();checked=false;}currentSkillId=q.skillId||LE.choose(state.learning).skill.id;save();mapView()}else setup();if(initialStorageError)storageWarning(initialStorageError);window.MaxMode?.init();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
