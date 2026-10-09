@@ -146,14 +146,14 @@ function pictorial(id,p,step=0){
    const heading=document.createElement('strong');heading.textContent=title;
    group.append(heading);
    const blocks=document.createElement('div');blocks.className='picture-blocks';
-   const total=cls==='tens'&&tutorTraded?Math.min(count+10,19):count;
+   const total=cls==='ones'&&tutorTraded?Math.min(count+10,19):cls==='tens'&&tutorTraded?Math.max(0,count-1):count;
    for(let i=0;i<total;i++)dot(blocks,'picture-block '+cls);
    group.append(blocks);outer.append(group);
   });return;
  }
  box.hidden=true;
 }
-function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);const need=skill.prereq.filter(id=>!state.learning.mastered.includes(id)).map(id=>LE.byId(id).name);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${Math.min(status.attempts,10)}/10 questions · ${status.streak}/5 in a row`:'Unlock by mastering: '+need.join(' and '));box.append(item);}}
+function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){if(state.mathTopic!=='advanced'&&!BASIC_IDS.has(skill.id))continue;const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);const need=skill.prereq.filter(id=>!state.learning.mastered.includes(id)).map(id=>LE.byId(id).name);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${Math.min(status.attempts,10)}/10 questions · ${status.streak}/5 in a row`:'Unlock by mastering: '+need.join(' and '));box.append(item);}}
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}}))}catch(e){}};
 const show=(id,yes)=>$(id).hidden=!yes;
 const worldDetails={drawing:['🎨','Sketch Meadow','Draw your own adventure!'],space:['🚀','Starry Space','Zoom through the stars!'],ocean:['🐬','Coral Cove','Dive into the ocean!'],jungle:['🌴','Jungle Trail','Explore the jungle!'],castle:['🏰','Cloud Castle','Explore the sky castle!'],mystery:['❔','???','What could be hiding here?']};
