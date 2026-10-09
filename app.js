@@ -328,6 +328,21 @@ function cleverRender(){
  $('cleverNext').disabled=cleverIndex===strategy.steps.length-1;
  $('cleverNext').textContent=cleverIndex===strategy.steps.length-1?'You got it! ✓':'Show next idea →';
  const models=$('cleverModels');models.replaceChildren();
+ if(strategy.name==='Make a 10'){
+  const tens=document.createElement('div');tens.className='clever-tenframe';
+  const base=strategy.parts[0].value,needed=strategy.parts[1].value;
+  const filled=cleverIndex===0?base:Math.min(10,base+needed);
+  for(let cell=0;cell<10;cell++){
+   const dot=document.createElement('span');
+   dot.className='tenframe-dot'+(cell<base?' already':cell<filled?' moved':'');
+   tens.append(dot);
+  }
+  models.append(tens);
+ }else if(strategy.name==='Jump back to a ten'||strategy.name==='Subtract a friendly number'){
+  const path=document.createElement('div');path.className='clever-jumps';
+  path.textContent=cleverIndex===0?'Start at '+q.a:cleverIndex===1?'Make the first jump':'Finish the jump';
+  models.append(path);
+ }
  strategy.parts.forEach((part,i)=>{
   // The goal appears at the end of the walkthrough, not on the first hint.
   if((part.label==='Total'||part.label==='Left')&&cleverIndex<strategy.steps.length-1)return;
