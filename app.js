@@ -78,7 +78,7 @@ if(!['1','2','3','4'].includes(String(state.grade)))state.grade='3';
 let currentSkillId=q.skillId&&LE.byId(q.skillId)?q.skillId:LE.choose(state.learning).skill.id;
 let wrongOnQuestion=false,usedHelp=false,tries=0;
 if(state.session){wrongOnQuestion=!!state.session.wrongOnQuestion;usedHelp=!!state.session.usedHelp;tries=state.session.tries||0;}
-const BASIC_IDS=new Set(LE.SKILLS.slice(0,14).map(s=>s.id));
+const BASIC_IDS=new Set(['add-facts','sub-facts','add2-no','add2-carry','sub2-no','sub2-borrow','add3-no','add3-carry','sub3-no','sub3-borrow','sub3-zero','missing','story','mixed4']);
 const ADD_IDS=['add-facts','add2-no','add2-carry','add3-no','add3-carry'];
 const SUB_IDS=['sub-facts','sub2-no','sub2-borrow','sub3-no','sub3-borrow','sub3-zero'];
 function eligibleForTopic(){
