@@ -2,6 +2,10 @@
 /* Offline, deterministic learning rules. No accounts, networking or tracking. */
 (function(root){
 const SKILLS=[
+{id:'count1',name:'Counting within 10',grade:1,description:'Count up to ten objects.',kind:'count1',prereq:[]},
+{id:'add1-five',name:'Add within 5',grade:1,description:'Put small groups together.',kind:'add1-five',prereq:['count1']},
+{id:'add1-ten',name:'Add within 10',grade:1,description:'Practise addition within ten.',kind:'add1-ten',prereq:['add1-five']},
+{id:'sub1-ten',name:'Subtract within 10',grade:1,description:'Take away from groups up to ten.',kind:'sub1-ten',prereq:['add1-ten']},
 {id:'add-facts',name:'Addition foundations',grade:2,description:'Build confidence adding within 20.',kind:'add',min:1,max:19,prereq:[]},
 {id:'sub-facts',name:'Subtraction foundations',grade:2,description:'Understand taking away within 20.',kind:'sub',min:1,max:20,prereq:['add-facts']},
 {id:'add2-no',name:'Two-digit addition',grade:2,description:'Add tens and ones without regrouping.',kind:'add2-no',prereq:['add-facts']},
@@ -45,6 +49,9 @@ const digits=n=>[n%10,Math.floor(n/10)%10,Math.floor(n/100)%10,Math.floor(n/1000
 function qualifies(kind,a,b){const x=digits(a),y=digits(b);const carry=x[0]+y[0]>=10,carryT=x[1]+y[1]+(carry?1:0)>=10;const borrow=x[0]<y[0],borrowT=x[1]-(borrow?1:0)<y[1];
 switch(kind){case 'add2-no':return a+b<100&&!carry;case 'add2-carry':return a+b<100&&carry;case 'sub2-no':return a>b&&!borrow;case 'sub2-borrow':return a>b&&borrow;case 'add3-no':return a+b<1000&&!carry&&!carryT;case 'add3-carry':return a+b<1000&&(carry||carryT);case 'sub3-no':return a>b&&!borrow&&!borrowT;case 'sub3-borrow':return a>b&&(borrow||borrowT);case 'sub3-zero':return a>b&&x[1]===0&&x[0]<y[0]&&x[2]>0;default:return true;}}
 function problem(skillId,rng=Math.random,avoid=[]){const s=byId(skillId)||SKILLS[0];const k=s.kind;let a,b,op,story='',answer,steps=[];for(let t=0;t<1000;t++){
+if(k==='count1'){const n=randomInt(rng,1,10);return {a:n,b:0,op:'count',answer:n,skillId,story:'How many stars can you count?',visual:'count1',signature:skillId+':'+n};}
+if(k==='add1-five'||k==='add1-ten'){const max=k==='add1-five'?5:10;const x=randomInt(rng,1,max-1),y=randomInt(rng,1,max-x);return {a:x,b:y,op:'+',answer:x+y,skillId,story:'',signature:skillId+':'+x+'+'+y};}
+if(k==='sub1-ten'){const x=randomInt(rng,2,10),y=randomInt(rng,1,x-1);return {a:x,b:y,op:'−',answer:x-y,skillId,story:'',signature:skillId+':'+x+'-'+y};}
 if(['groups','times-easy','times-middle','times-harder','divide-equal','divide-facts','fraction-parts','fraction-set','fraction-equivalent','measure-length','measure-convert','measure-mass','time-clock','time-elapsed','money-coins','shape-sides','perimeter','area','angles','data-graphs'].includes(k)){
  const pick=(list)=>list[randomInt(rng,0,list.length-1)];
  const set=(aa,bb,symbol,result,prompt,extra={})=>({a:aa,b:bb,op:symbol,answer:result,skillId,story:prompt,steps:[],...extra,signature:skillId+':'+aa+':'+bb+':'+symbol+':'+result});
