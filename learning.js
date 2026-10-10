@@ -211,6 +211,7 @@ function cleverStrategy(p){
  return null;
 }
 function teaching(p){
+if(p.visual==='count1')return ['Point to the first star.','Touch each star while counting: one, two, three…','The total is '+p.answer+' stars.'];
 if(p.visual){
  if(p.visual==='groups')return p.op==='÷'?[ 'Draw '+p.b+' circles for the groups.', 'Share '+p.a+' counters one at a time, equally.', 'Count one group: '+p.answer+' counters.' ]:[ 'Draw '+p.a+' equal groups with '+p.b+' in each.', 'Skip-count by '+p.b+': '+Array.from({length:p.a},(_,i)=>(i+1)*p.b).join(', ')+'.', 'There are '+p.answer+' altogether.' ];
  if(p.visual==='fraction')return ['The bottom number tells how many EQUAL parts make a whole.', 'One part out of '+p.parts+' means one-'+p.parts+'.', 'Look at the shaded part; then answer the question.'];
