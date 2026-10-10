@@ -502,3 +502,10 @@ body.max-lab-active footer{color:#dce7f6}
 .reset-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 #resetFinal{background:#ad342c;color:#fff;border:2px solid #84241d}
 #resetFinal:disabled{opacity:.45;cursor:not-allowed}
+
+/* Parent grade selector and young learners' counting pictures */
+.parent-grade{margin:12px 0 20px;padding:15px;background:#ecf6ff;border:2px solid #b7d7ec;border-radius:16px;color:#233e65}
+.parent-grade label{display:block;margin-bottom:9px;font-size:1rem;font-weight:850}
+.parent-grade select{font:inherit;font-weight:750;width:100%;max-width:320px;min-height:48px;padding:9px 12px;border:2px solid #85b3d0;border-radius:11px;background:#fff;color:#192f55}
+.parent-grade p{margin:9px 0 0;font-size:.86rem;line-height:1.5}
+.count1-stars{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:15px 10px;font-size:2rem}
