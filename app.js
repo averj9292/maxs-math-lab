@@ -74,6 +74,7 @@ const LE=MathLearning;
 state.learning=LE.normalize(state.learning);
 if(!state.worldProgress||typeof state.worldProgress!=='object')state.worldProgress={};
 if(!['guided','addition','subtraction','mixed','advanced'].includes(state.mathTopic))state.mathTopic='guided';
+if(!['1','2','3','4'].includes(String(state.grade)))state.grade='3';
 let currentSkillId=q.skillId&&LE.byId(q.skillId)?q.skillId:LE.choose(state.learning).skill.id;
 let wrongOnQuestion=false,usedHelp=false,tries=0;
 if(state.session){wrongOnQuestion=!!state.session.wrongOnQuestion;usedHelp=!!state.session.usedHelp;tries=state.session.tries||0;}
@@ -81,16 +82,26 @@ const BASIC_IDS=new Set(LE.SKILLS.slice(0,14).map(s=>s.id));
 const ADD_IDS=['add-facts','add2-no','add2-carry','add3-no','add3-carry'];
 const SUB_IDS=['sub-facts','sub2-no','sub2-borrow','sub3-no','sub3-borrow','sub3-zero'];
 function eligibleForTopic(){
- const topic=state.mathTopic;
- const available=LE.available(state.learning);
+ const topic=state.mathTopic,grade=Number(state.grade)||3;
+ const available=LE.available(state.learning).filter(x=>x.grade<=grade);
+ if(grade===1){
+  const basics=available.filter(x=>x.grade===1);
+  if(topic==='addition'){const add=basics.filter(x=>x.id==='count1'||x.id.startsWith('add1-'));return add.length?add:basics;}
+  if(topic==='subtraction'){const sub=basics.filter(x=>x.id==='sub1-ten');return sub.length?sub:basics;}
+  return basics;
+ }
  if(topic==='guided')return available.filter(x=>BASIC_IDS.has(x.id));
- if(topic==='advanced')return available.filter(x=>!BASIC_IDS.has(x.id));
+ if(topic==='advanced'){
+  const extras=available.filter(x=>!BASIC_IDS.has(x.id)&&x.grade>=2);
+  return extras.length?extras:available.filter(x=>BASIC_IDS.has(x.id));
+ }
  const ids=topic==='addition'?ADD_IDS:topic==='subtraction'?SUB_IDS:ADD_IDS.concat(SUB_IDS);
  const pool=available.filter(x=>ids.includes(x.id));
- return pool.length?pool:[LE.byId(topic==='subtraction'?'sub-facts':'add-facts')];
+ return pool.length?pool:available.filter(x=>BASIC_IDS.has(x.id));
 }
 function pickQuestionSkill(){
- return LE.nextSkill(state.learning,eligibleForTopic()).skill;
+ const eligible=eligibleForTopic();
+ return LE.nextSkill(state.learning,eligible).skill;
 }
 function topicDescription(){
  const labels={guided:"My learning path picks math you're ready for.",addition:'Practice adding numbers.',subtraction:'Practice taking away.',mixed:'A mix of adding and taking away.',advanced:'New challenges for when you feel ready. You can switch back anytime.'};
@@ -115,6 +126,10 @@ function activeSkill(){return LE.byId(currentSkillId)||LE.SKILLS[0];}
 let tutorTraded=false;
 function pictorial(id,p,step=0){
  const box=$(id);box.replaceChildren();box.hidden=false;
+ if(p.visual==='count1'){
+  const title=document.createElement('div');title.className='visual-heading';title.textContent='Count the stars';box.append(title);
+  const stars=document.createElement('div');stars.className='count1-stars';for(let i=0;i<p.a;i++){const item=document.createElement('span');item.textContent='⭐';stars.append(item)}box.append(stars);return;
+ }
  const label=(t)=>{const x=document.createElement('div');x.className='visual-heading';x.textContent=t;box.append(x)};
  const wrap=(cls)=>{const x=document.createElement('div');x.className=cls;box.append(x);return x};
  const dot=(container,cls='picture-dot')=>{const x=document.createElement('span');x.className=cls;container.append(x)};
@@ -172,7 +187,7 @@ function pictorial(id,p,step=0){
  }
  box.hidden=true;
 }
-function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){if(state.mathTopic!=='advanced'&&!BASIC_IDS.has(skill.id))continue;const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);const need=skill.prereq.filter(id=>!state.learning.mastered.includes(id)).map(id=>LE.byId(id).name);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${Math.min(status.attempts,10)}/10 questions · ${status.streak}/5 in a row`:'Unlock by mastering: '+need.join(' and '));box.append(item);}}
+function learningReport(){const box=$('learningReport');box.replaceChildren();for(const skill of LE.SKILLS){if(skill.grade>Number(state.grade))continue;if(Number(state.grade)>1&&skill.grade===1)continue;if(state.mathTopic!=='advanced'&&Number(state.grade)>1&&!BASIC_IDS.has(skill.id))continue;const status=LE.masteryStatus(state.learning,skill.id);const item=document.createElement('p');const accessible=LE.available(state.learning).some(s=>s.id===skill.id);const need=skill.prereq.filter(id=>!state.learning.mastered.includes(id)).map(id=>LE.byId(id).name);item.textContent=(status.mastered?'✓ ':accessible?'◯ ':'🔒 ')+skill.name+' — '+(status.mastered?'Mastered':accessible?`${Math.min(status.attempts,10)}/10 questions · ${status.streak}/5 in a row`:'Unlock by mastering: '+need.join(' and '));box.append(item);}}
 const backupPayload=()=>({...state,session:{q,answer,selected,workspace,checked,wrongOnQuestion,usedHelp,tries}});
 let storageProblem=false;
 function storageWarning(message){storageProblem=true;const node=$('storageStatus');if(node){node.textContent=message;node.hidden=false}}
@@ -190,6 +205,17 @@ function validBackup(data){
  return p;
 }
 function setBackupStatus(message){const node=$('backupStatus');if(node)node.textContent=message}
+$('parentGrade').value=String(state.grade);
+$('parentGrade').onchange=()=>{
+ const next=$('parentGrade').value;
+ if(!['1','2','3','4'].includes(next))return;
+ if(next===String(state.grade))return;
+ state.grade=next;
+ // Preserve stars, mastery, worlds, badges and game history; only create an age-appropriate next question.
+ save();
+ if(!$('game').hidden)generate();
+ setBackupStatus('Grade '+next+' selected. Existing progress is saved; new questions will stay within the selected grade.');
+};
 $('backupExport').onclick=()=>{
  try{
   const data={format:'maxmath-progress-backup',version:1,exportedAt:new Date().toISOString(),progress:backupPayload()};
@@ -267,6 +293,7 @@ function render(){
  $('question').textContent=q.story||`${q.a} ${q.op} ${q.b} = ?`;
  pictorial('problemVisual',q,-1);
  const skill=activeSkill(),status=LE.masteryStatus(state.learning,skill.id);
+ $('parentGrade').value=String(state.grade);
  $('mathTopic').value=state.mathTopic;topicDescription();
  $('skillName').textContent=skill.name;$('skillDescription').textContent=skill.description;
  $('skillProgress').textContent=status.mastered?'✓ Mastered · Reviewing to keep it strong':`${Math.min(status.attempts,10)}/10 questions done · ${status.streak}/5 right in a row`;
@@ -343,6 +370,7 @@ function diagnose(given,p){const correct=expected(),diff=given-correct;
  if(p.visual==='groups'&&p.op==='÷'&&given===p.a*p.b)return 'Division is sharing equally. Draw the groups and count how many go in each.';
  if(p.visual==='rectangle'&&given===p.a*p.b)return 'That finds area, not perimeter. Perimeter means going all the way around.';
  if(p.visual==='area'&&given===2*(p.a+p.b))return 'That finds perimeter. Area counts the squares inside.';
+ if(p.skillId==='count1')return 'Point to each star and count one at a time. Try again.';
  if(p.skillId==='missing')return 'Try working backward: subtract the first number from the total.';
  if(p.skillId==='story'||p.skillId==='mixed4')return 'Read the story again. What happened first, and what happened next?';
  return 'Not quite yet. Check each place value and try again, or tap Teach me for a hint.';}
@@ -632,4 +660,4 @@ $('cleverNext').onclick=()=>{const st=LE.cleverStrategy(q);if(st)cleverIndex=Mat
 $('speakBtn').onclick=speak;$('tradeBtn').onclick=()=>{tutorTraded=!tutorTraded;pictorial('teachVisual',q,teachIndex);$('tradeBtn').textContent=tutorTraded?'↩️ Show before trading':'🔁 Trade 1 ten for 10 ones'};$('drawBtn').onclick=()=>{const open=$('drawing').hidden;show('drawing',open);if(open)requestAnimationFrame(canvas)};$('undo').onclick=()=>{strokes.pop();redraw()};$('clear').onclick=()=>{strokes=[];redraw()};
 ['playmode'].forEach(id=>$(id).addEventListener('change',()=>{state[id]=$ (id).value;save();if(id==='playmode'){clearInterval(timerId);timerId=null;if(state.playmode==='minute'){roundEnd=Date.now()+60000;timerId=setInterval(()=>{const left=Math.max(0,Math.ceil((roundEnd-Date.now())/1000));$('timer').textContent=`⏱️ ${left}s`;if(left===0){clearInterval(timerId);timerId=null;$('check').disabled=true;$('feedback').textContent='⏰ Time is up! Great effort. Change to Practice Lab to continue.'}},250)}else{$('timer').textContent='';$('check').disabled=false}}generate()}));
 
-if(!initialStorageError&&(()=>{try{return localStorage.getItem(STORE)!==null}catch(e){initialStorageError='⚠️ Browser storage is unavailable. Progress may not save.';storageWarning(initialStorageError);return false}})()){if(!q.skillId||q.answer===undefined){q=makeProblem(pickQuestionSkill());answer=['','','',''];startAtLeft();checked=false;}currentSkillId=q.skillId||LE.choose(state.learning).skill.id;save();mapView()}else setup();if(initialStorageError)storageWarning(initialStorageError);window.MaxMode?.init();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if(!initialStorageError&&(()=>{try{return localStorage.getItem(STORE)!==null}catch(e){initialStorageError='⚠️ Browser storage is unavailable. Progress may not save.';storageWarning(initialStorageError);return false}})()){if(!q.skillId||q.answer===undefined||!LE.byId(q.skillId)||LE.byId(q.skillId).grade>Number(state.grade)){q=makeProblem(pickQuestionSkill());answer=['','','',''];startAtLeft();checked=false;}currentSkillId=q.skillId||LE.choose(state.learning).skill.id;save();mapView()}else setup();if(initialStorageError)storageWarning(initialStorageError);window.MaxMode?.init();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
